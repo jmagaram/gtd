@@ -1,3 +1,10 @@
+import { Observable } from 'rxjs';
+
+export interface StateStore<TState,TAction> {
+    state$:Observable<TState>;
+    dispatch(command:TAction):void;
+}
+
 export interface Pipe<T> {
     readonly value: T;
     map<U>(fn: (v: T) => U): Pipe<U>;

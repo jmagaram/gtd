@@ -20,6 +20,7 @@
     "@types/react-dom": "^16.0.5",
     "@types/uuid": "3.4.3",
     "typescript": "^2.8.3",
-    "uuid": "3.2.1"
+    "uuid": "3.2.1",
+    "rxjs": "6.1.0"
   }
 }
