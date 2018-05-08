@@ -1,5 +1,5 @@
-import { Observable, Subject } from 'rxjs';
-import { publishBehavior, scan } from 'rxjs/operators';
+import { ConnectableObservable, Observable, Subject } from 'rxjs';
+import { scan, startWith } from 'rxjs/operators';
 import { StateStore } from './types';
 
 class StateStoreImpl<TState, TAction> implements StateStore<TState, TAction> {
@@ -11,8 +11,8 @@ class StateStoreImpl<TState, TAction> implements StateStore<TState, TAction> {
         this.state$ = this
             .command$
             .pipe(
-                scan<TAction, TState>((accumulator, value, index) => reducer(accumulator, value)),
-                publishBehavior(initialState));
+                scan<TAction, TState>((accumulator, action, index) => reducer(accumulator, action), initialState),
+                startWith(initialState));
     }
 
     public dispatch(command: TAction): void {
@@ -20,8 +20,8 @@ class StateStoreImpl<TState, TAction> implements StateStore<TState, TAction> {
     }
 }
 
-export default function stateStore<TState, TCommand>(
+export function stateStore<TState, TAction>(
     initialState: TState,
-    reducer: (previousState: TState, command: TCommand) => TState): StateStore<TState, TCommand> {
-    return new StateStoreImpl<TState, TCommand>(initialState, reducer);
+    reducer: (previousState: TState, command: TAction) => TState): StateStore<TState, TAction> {
+    return new StateStoreImpl<TState, TAction>(initialState, reducer);
 }
