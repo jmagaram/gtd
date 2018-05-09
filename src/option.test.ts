@@ -7,8 +7,7 @@ describe("some", () => {
 });
 
 describe("none", () => {
-    test("returns undefined when string", () => expect(Option.none<string>()).toBeUndefined());
-    test("returns undefined when number", () => expect(Option.none<number>()).toBeUndefined());
+    test("is same as undefined", () => expect(Option.none).toBeUndefined());
 });
 
 describe("create", () => {
@@ -24,9 +23,9 @@ describe("reduce", () => {
 });
 
 describe("reduceOrThrow", () => {
-    test("when undefined, throw", () => expect(() => Option.reduceOrThrow<string>(undefined, "x")).toThrow());
-    test("when null, throw", () => expect(() => Option.reduceOrThrow<any>(null, "x")).toThrow());
-    test("when some, return value.", () => expect(Option.reduceOrThrow<string>("a", "x")).toBe("a"));
+    test("when undefined, throw", () => expect(() => Option.reduceOrThrow<string>(undefined)).toThrow());
+    test("when null, throw", () => expect(() => Option.reduceOrThrow<any>(null)).toThrow());
+    test("when some, return value.", () => expect(Option.reduceOrThrow<string>("a")).toBe("a"));
 });
 
 describe("reduceLazy", () => {
@@ -40,7 +39,7 @@ describe("reduceLazy", () => {
         const returnX = jest.fn(() => "x");
         expect(Option.reduceLazy<any>(null, returnX)).toBe("x");
         expect(returnX.mock.calls.length).toBe(1);
-    });  
+    });
 
     test("when some, return actual value without executing function.", () => {
         const returnX = jest.fn(() => "x");
@@ -58,7 +57,21 @@ describe("map", () => {
     });
     test("when null, return undefined without executing function.", () => {
         const returnNumber = jest.fn(i => 1);
-        expect(Option.map<string, number>(null, returnNumber)).toBeUndefined();
+        expect(Option.map<any, number>(null, returnNumber)).toBeUndefined();
         expect(returnNumber.mock.calls.length).toBe(0);
-    });    
+    });
+});
+
+describe("mapOption", () => {
+    test("when some, return mapped value flattened.", () => expect(Option.mapOption<string, number>("a", i => Option.some((i === "a") ? 100 : -1))).toBe(100));
+    test("when undefined, return undefined without executing function.", () => {
+        const returnNumber = jest.fn((i: string) => Option.some(1));
+        expect(Option.mapOption<string, number>(undefined, returnNumber)).toBeUndefined();
+        expect(returnNumber.mock.calls.length).toBe(0);
+    });
+    test("when null, return undefined without executing function.", () => {
+        const returnNumber = jest.fn((i: any) => Option.some(1));
+        expect(Option.mapOption<any, number>(null, returnNumber)).toBeUndefined();
+        expect(returnNumber.mock.calls.length).toBe(0);
+    });
 });
