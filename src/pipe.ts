@@ -21,7 +21,7 @@ type LastOf<
     J;
 
 export function pipe<A, B, C=never, D=never, E=never, F=never, G=never, H=never, I=never, J=never>(
-    a: A,
+    a: () => A,
     mapA: (a: A) => B,
     mapB?: (b: B) => C,
     mapC?: (c: C) => D,
@@ -33,28 +33,28 @@ export function pipe<A, B, C=never, D=never, E=never, F=never, G=never, H=never,
     mapI?: (i: I) => J
 ): LastOf<A, B, C, D, E, F, G, H, I, J> {
     if (mapB === undefined) {
-        return mapA(a) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapA(a()) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapC === undefined) {
-        return mapB(mapA(a)) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapB(mapA(a())) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapD === undefined) {
-        return mapC(mapB(mapA(a))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapC(mapB(mapA(a()))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapE === undefined) {
-        return mapD(mapC(mapB(mapA(a)))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapD(mapC(mapB(mapA(a())))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapF === undefined) {
-        return mapE(mapD(mapC(mapB(mapA(a))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapE(mapD(mapC(mapB(mapA(a()))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapG === undefined) {
-        return mapF(mapE(mapD(mapC(mapB(mapA(a)))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapF(mapE(mapD(mapC(mapB(mapA(a())))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapH === undefined) {
-        return mapG(mapF(mapE(mapD(mapC(mapB(mapA(a))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapG(mapF(mapE(mapD(mapC(mapB(mapA(a()))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
     if (mapI === undefined) {
-        return mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a)))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+        return mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a())))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
-    return mapI(mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a))))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    return mapI(mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a()))))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
 }
