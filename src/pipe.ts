@@ -32,51 +32,29 @@ export function pipe<A, B, C=never, D=never, E=never, F=never, G=never, H=never,
     mapH?: (h: H) => I,
     mapI?: (i: I) => J
 ): LastOf<A, B, C, D, E, F, G, H, I, J> {
-    const b = mapA(a);
-    switch (mapB) {
-        case undefined: return b as LastOf<A, B, C, D, E, F, G, H, I, J>;
-        default: {
-            const c = mapB(b);
-            switch (mapC) {
-                case undefined: return c as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                default: {
-                    const d = mapC(c);
-                    switch (mapD) {
-                        case undefined: return d as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                        default: {
-                            const e = mapD(d);
-                            switch (mapE) {
-                                case undefined: return e as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                default: {
-                                    const f = mapE(e);
-                                    switch (mapF) {
-                                        case undefined: return f as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                        default: {
-                                            const g = mapF(f);
-                                            switch (mapG) {
-                                                case undefined: return g as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                                default: {
-                                                    const h = mapG(g);
-                                                    switch (mapH) {
-                                                        case undefined: return h as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                                        default: {
-                                                            const i = mapH(h);
-                                                            switch (mapI) {
-                                                                case undefined: return i as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                                                default: return mapI(i) as LastOf<A, B, C, D, E, F, G, H, I, J>;
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    if (mapB === undefined) {
+        return mapA(a) as LastOf<A, B, C, D, E, F, G, H, I, J>;
     }
+    if (mapC === undefined) {
+        return mapB(mapA(a)) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapD === undefined) {
+        return mapC(mapB(mapA(a))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapE === undefined) {
+        return mapD(mapC(mapB(mapA(a)))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapF === undefined) {
+        return mapE(mapD(mapC(mapB(mapA(a))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapG === undefined) {
+        return mapF(mapE(mapD(mapC(mapB(mapA(a)))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapH === undefined) {
+        return mapG(mapF(mapE(mapD(mapC(mapB(mapA(a))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    if (mapI === undefined) {
+        return mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a)))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
+    }
+    return mapI(mapH(mapG(mapF(mapE(mapD(mapC(mapB(mapA(a))))))))) as LastOf<A, B, C, D, E, F, G, H, I, J>;
 }
