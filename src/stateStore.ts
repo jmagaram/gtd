@@ -1,5 +1,4 @@
-import { Observable, Subject } from 'rxjs';
-import { scan, startWith } from 'rxjs/operators';
+import { Observable, BehaviorSubject } from 'rxjs';
 
 interface T<TState, TAction> {
     state$: Observable<TState>;
@@ -13,18 +12,12 @@ export function create<TState, TAction>(
 
 class Store<TState, TAction> implements T<TState, TAction> {
     public state$: Observable<TState>;
-    private command$: Subject<TAction>;
 
     constructor(initialState: TState, reducer: (state: TState, command: TAction) => TState) {
-        this.command$ = new Subject<TAction>();
-        this.state$ = this
-            .command$
-            .pipe(
-                scan<TAction, TState>((accumulator, action) => reducer(accumulator, action), initialState),
-                startWith(initialState));
+        const state = new BehaviorSubject<TState>(initialState);
+        this.dispatch = (command: TAction) => state.next(reducer(state.value, command));
+        this.state$ = state;
     }
 
-    public dispatch(command: TAction): void {
-        this.command$.next(command);
-    }
+    public dispatch: (command: TAction) => void;
 }

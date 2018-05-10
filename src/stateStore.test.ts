@@ -29,6 +29,17 @@ test("when subscribe before any dispatched actions, emit the initial state", () 
     subscription.unsubscribe();
 });
 
+test("when subscribe after actions dispatched, can still get the current state", () => {
+    const store = Store.create<number, Action>(0, reducer);
+    store.dispatch({ kind: "add", operand: 10 });
+    let lastObserved: number = -1;
+    const subscription = store.state$.subscribe(n => {
+        lastObserved = n;
+    });
+    expect(lastObserved).toBe(10);
+    subscription.unsubscribe();
+});
+
 test("when actions are dispatched, emit the new calculated state", () => {
     const initialState = 1;
     const store = Store.create<number, Action>(initialState, reducer);
