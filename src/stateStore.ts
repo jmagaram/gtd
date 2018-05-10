@@ -8,10 +8,10 @@ interface T<TState, TAction> {
 
 export function create<TState, TAction>(
     initialState: TState, reducer: (previousState: TState, command: TAction) => TState): T<TState, TAction> {
-    return new StateStore<TState, TAction>(initialState, reducer);
+    return new Store<TState, TAction>(initialState, reducer);
 }
 
-class StateStore<TState, TAction> implements T<TState, TAction> {
+class Store<TState, TAction> implements T<TState, TAction> {
     public state$: Observable<TState>;
     private command$: Subject<TAction>;
 
