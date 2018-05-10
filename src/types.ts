@@ -1,12 +1,13 @@
-import { T as UniqueId} from './uniqueId';
+import { T as UniqueId } from './uniqueId';
+import * as Tagged from './tagged';
 
-export type ActionItemTitle = string & { _type: "actionItemTitle" };
+export type ActionItemTitle = Tagged.T<string, "actionItemTitle">;
 
 export interface ActionItem {
-    readonly uniqueId:UniqueId;
-    readonly title:ActionItemTitle;
-    readonly isImportant:boolean;
-    readonly isComplete:boolean;
+    readonly uniqueId: UniqueId;
+    readonly title: ActionItemTitle;
+    readonly isImportant: boolean;
+    readonly isComplete: boolean;
 }
 
 export interface View {
@@ -15,6 +16,6 @@ export interface View {
 }
 
 export interface ApplicationState {
-    readonly items : ReadonlyMap<UniqueId, ActionItem>;
+    readonly items: ReadonlyMap<UniqueId, ActionItem>;
     readonly view: View;
 }
