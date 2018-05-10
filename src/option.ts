@@ -41,3 +41,7 @@ export function map<Value, Result>(i: T<Value>, fn: (v: Value) => Result): T<Res
 export function mapOption<Value, Result>(i: T<Value>, fn: (v: Value) => T<Result>): T<Result> {
     return (i == null || i === undefined) ? undefined : fn(i);
 }
+
+export function filter<Value>(source: T<Value>, predicate: (v: Value) => boolean): T<Value> {
+    return (source === undefined) ? undefined : predicate(source) ? source : undefined;
+}

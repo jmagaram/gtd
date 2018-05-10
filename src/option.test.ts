@@ -48,6 +48,26 @@ describe("reduceLazy", () => {
     });
 });
 
+describe("filter", () => {
+    test("when some and predicate true, return same instance", () => {
+        const some = Option.some("x");
+        const result = Option.filter(some, i => i == "x");
+        expect(result).toBe(some);
+    });
+    test("when some and predicate false, return undefined", () => {
+        const some = Option.some("x");
+        const result = Option.filter(some, i => i == "y");
+        expect(result).toBeUndefined();
+    });
+    test("when none, return undefined", () => expect(Option.filter<string>(Option.none, i => true)).toBeUndefined());
+    test("when none, do not evaluate predicate", () => {
+        const predicate = jest.fn((i: string) => true);
+        const source: Option.T<string> = Option.none;
+        Option.filter(source,predicate);
+        expect(predicate.mock.calls.length).toBe(0);
+    });
+});
+
 describe("map", () => {
     test("when some, return mapped value.", () => expect(Option.map<string, number>("a", i => i === "a" ? 100 : -1)).toBe(100));
     test("when undefined, return undefined without executing function.", () => {
