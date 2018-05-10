@@ -63,7 +63,7 @@ describe("filter", () => {
     test("when none, do not evaluate predicate", () => {
         const predicate = jest.fn((i: string) => true);
         const source: Option.T<string> = Option.none;
-        Option.filter(source,predicate);
+        Option.filter(source, predicate);
         expect(predicate.mock.calls.length).toBe(0);
     });
 });
