@@ -1,6 +1,7 @@
 import { v1 } from 'uuid';
-import { UniqueId } from './types';
 
-export default function uniqueId(): UniqueId {
-    return v1() as UniqueId;
+export type T = string & { _type: "uniqueId" };
+
+export function create(): T {
+    return v1() as T;
 }

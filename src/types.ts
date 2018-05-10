@@ -1,4 +1,4 @@
-export type UniqueId = string & { _type: "uniqueId" };
+import { T as UniqueId} from './uniqueId';
 
 export type ActionItemTitle = string & { _type: "actionItemTitle" };
 
