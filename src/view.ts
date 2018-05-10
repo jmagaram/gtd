@@ -1,25 +1,19 @@
-import { View } from './types'
+export interface T {
+    readonly onlyShowIncomplete: boolean;
+    readonly onlyShowImportant: boolean;
+}
 
-export function view(p: Partial<View>): View {
+export function create(props: Partial<T> = {}): T {
     return {
-        onlyShowImportant: p.onlyShowImportant || false,
-        onlyShowIncomplete: p.onlyShowIncomplete || true
+        onlyShowImportant: props.onlyShowImportant || false,
+        onlyShowIncomplete: props.onlyShowIncomplete || true
     };
 }
 
-export function toggleOnlyShowImportant(v: View): View {
-    return modifyView(v, { onlyShowImportant: !v.onlyShowImportant });
+export function toggleOnlyShowImportant(source: T): T {
+    return { ...source, onlyShowImportant: !source.onlyShowImportant };
 }
 
-export function toggleOnlyShowIncomplete(v: View): View {
-    return modifyView(v, {onlyShowIncomplete: !v.onlyShowIncomplete });
-}
-
-function modifyView(
-    source: View,
-    delta: Partial<View>): View {
-    return {
-        onlyShowImportant: delta.onlyShowImportant || source.onlyShowImportant,
-        onlyShowIncomplete: delta.onlyShowIncomplete || source.onlyShowIncomplete
-    };
+export function toggleOnlyShowIncomplete(source: T): T {
+    return { ...source, onlyShowIncomplete: !source.onlyShowIncomplete };
 }

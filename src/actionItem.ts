@@ -1,32 +1,30 @@
-import { ActionItem, ActionItemTitle } from './types'
-import createUniqueId from './uniqueId'
+import * as UniqueId from './uniqueId';
 
-export function actionItemTitle(i: string): ActionItemTitle {
-    const trimmed = i.trim();
-    if (trimmed.length < 1) {
-        throw new RangeError("The title is too short.");
-    }
-    if (trimmed.length > 50) {
-        throw new RangeError("The title is too long.");
-    }
-    return i as ActionItemTitle;
+export interface T {
+    readonly uniqueId: UniqueId.T;
+    readonly title: string;
+    readonly isImportant: boolean;
+    readonly isComplete: boolean;
 }
 
-export function actionItem(
-    required: { [P in "title"]: ActionItem[P] },
-    optional: { [P in "uniqueId" | "isImportant" | "isComplete"]?: ActionItem[P] }): ActionItem {
+export function create(props: {
+    uniqueId?: UniqueId.T;
+    title: string;
+    isImportant?: boolean;
+    isComplete?: boolean
+}): T {
     return {
-        title: actionItemTitle(""),
-        isComplete: optional.isComplete || false,
-        isImportant: optional.isImportant || false,
-        uniqueId: optional.uniqueId || createUniqueId()
+        title: props.title,
+        isComplete: props.isComplete || false,
+        isImportant: props.isImportant || false,
+        uniqueId: props.uniqueId || UniqueId.create()
     };
 }
 
-export function toggleIsComplete(i: ActionItem): ActionItem {
+export function toggleIsComplete(i: T): T {
     return { ...i, isComplete: !i.isComplete };
 }
 
-export function toggleIsImportant(i: ActionItem): ActionItem {
+export function toggleIsImportant(i: T): T {
     return { ...i, isImportant: !i.isImportant };
 }
