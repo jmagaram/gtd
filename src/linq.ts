@@ -12,6 +12,19 @@ export function* map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
     }
 }
 
+export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T): T | undefined {
+    let total: T | undefined;
+    for (const i of source) {
+        if (total == undefined) {
+            total = i;
+        }
+        else {
+            total = accumulator(total, i);
+        }
+    }
+    return total;
+}
+
 export function toArray<T>(source: Iterable<T>) {
     return Array.from(source);
 }
@@ -20,9 +33,12 @@ export function toSet<T>(source: Iterable<T>) {
     return new Set<T>(source);
 }
 
-export function* range(start: number, stop: number) {
-    for (let i: number = start; i <= stop; i++) {
+export function* range(from: number, to: number) {
+    for (let i: number = from; i <= to; i++) {
         yield i;
     }
 }
+
+
+
 
