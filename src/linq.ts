@@ -1,8 +1,14 @@
-export function* filter<T>(predicate: (item: T) => boolean, source: Iterable<T>) {
+export function* filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
     for (const i of source) {
         if (predicate(i)) {
             yield i;
         }
+    }
+}
+
+export function* map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
+    for (const i of source) {
+        yield selector(i);
     }
 }
 
