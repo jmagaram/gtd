@@ -1,11 +1,12 @@
 import * as UniqueId from './uniqueId';
-import * as Enumerable from 'linq';
+import * as Linq from './linq';
+import { pipe } from './pipe';
 
-test("when create 1000, each instance is unique", () =>
-    expect(Enumerable
-        .range(1, 1000)
-        .select(i => UniqueId.create())
-        .groupBy(i => i as string)
-        .select(i => i.count())
-        .max())
-        .toBe(1));
+test("when create 1000, each instance is unique", () => {
+    let ids = pipe(
+        () => Linq.range(1, 1000),
+        i => Linq.map(i, j => UniqueId.create()),
+        i => Linq.toArray(i));
+    let idSet = new Set<string>(ids);
+    expect(ids.length).toBe(idSet.size);
+});
