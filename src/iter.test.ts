@@ -50,12 +50,12 @@ describe("fold", () => {
 })
 
 describe("unfold", () => {
-    let oneToTen = () => Linq.unfold<number, number>({ seed: 1, generator: (i) => (i <= 10) ? [i, i + 1] : undefined });
+    const oneToTen = () => Linq.unfold<number, number>({ seed: 1, generator: (i) => (i <= 10) ? [i, i + 1] : undefined });
     test("unfold simple sequence 1 to 10", () => expect(Linq.length(oneToTen())).toBe(10));
 
     class FibonacciState {
         constructor(readonly n1: number, readonly n2: number) { }
-        readonly shift = () => new FibonacciState(this.n2, this.n1 + this.n2);
+        public readonly shift = () => new FibonacciState(this.n2, this.n1 + this.n2);
     }
 
     let fibonacci = () => Linq.unfold({
