@@ -13,6 +13,12 @@ describe("reduce", () => {
     test("many items", () => expect(Linq.reduce([1, 2, 3], (i, j) => i + j)).toBe(6));
 })
 
+describe("fold", () => {
+    test("zero items", () => expect(Linq.fold([], "z", (sum, i) => `${sum}${i}`)).toBe("z"));
+    test("one item", () => expect(Linq.fold(["a"], "z", (sum, i) => `${sum}${i}`)).toBe("za"));
+    test("many items", () => expect(Linq.fold(["a", "b", "c", "d"], "z", (sum, i) => `${sum}${i}`)).toBe("zabcd"));
+})
+
 test("toSet", () => {
     let result = pipe(
         () => [1, 2, 3, 4, 2, 4, 5, 3],
