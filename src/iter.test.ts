@@ -3,7 +3,7 @@ import { pipe } from './pipe';
 
 test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
 
-test("range", () => expect(Array.from(Linq.range({ from: 10, to: 12 }))).toEqual(expect.arrayContaining([10, 11, 12])));
+test("init", () => expect(Array.from(Linq.init({ count: 5 }))).toEqual(expect.arrayContaining([0, 1, 2, 3, 4])));
 
 test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
 
@@ -20,12 +20,57 @@ describe("length", () => {
     test("many items", () => expect(Linq.length(["a", "b", "c"])).toBe(3));
 })
 
+describe("take", () => {
+    test("0 from 3", () => expect(Array.from(Linq.take({ source: [1, 2, 3], count: 0 }))).toEqual(expect.arrayContaining([])));
+    test("1 from 3", () => expect(Array.from(Linq.take({ source: [1, 2, 3], count: 1 }))).toEqual(expect.arrayContaining([1])));
+    test("2 from 3", () => expect(Array.from(Linq.take({ source: [1, 2, 3], count: 2 }))).toEqual(expect.arrayContaining([1, 2])));
+    test("3 from 3", () => expect(Array.from(Linq.take({ source: [1, 2, 3], count: 3 }))).toEqual(expect.arrayContaining([1, 2, 3])));
+    test("0 from 0", () => expect(Array.from(Linq.take({ source: [], count: 0 }))).toEqual(expect.arrayContaining([])));
+
+    function* repeat(n: number) {
+        while (true) {
+            yield n;
+        }
+    }
+
+    test("take 0 from forever", () => expect(Array.from(Linq.take({ source: repeat(1), count: 0 }))).toEqual(expect.arrayContaining([])));
+    test("take 1 from forever", () => expect(Array.from(Linq.take({ source: repeat(1), count: 1 }))).toEqual(expect.arrayContaining([1])));
+    test("take 2 from forever", () => expect(Array.from(Linq.take({ source: repeat(1), count: 2 }))).toEqual(expect.arrayContaining([1, 1])));
+    test("take 3 from forever", () => expect(Array.from(Linq.take({ source: repeat(1), count: 3 }))).toEqual(expect.arrayContaining([1, 1, 1])));
+
+    test("4 from 3", () => expect(() => Array.from(Linq.take({ source: [1, 2, 3], count: 4 }))).toThrowError());
+    test("1 from 0", () => expect(() => Array.from(Linq.take({ source: [], count: 1 }))).toThrowError());
+})
+
 describe("fold", () => {
     const concatTwo = (a: string, b: string) => `${a}${b}`;
     test("zero items", () => expect(Linq.fold([], "z", concatTwo)).toBe("z"));
     test("one item", () => expect(Linq.fold(["a"], "z", concatTwo)).toBe("za"));
     test("many items", () => expect(Linq.fold(["a", "b", "c", "d"], "z", concatTwo)).toBe("zabcd"));
 })
+
+describe("unfold", () => {
+    let oneToTen = () => Linq.unfold<number, number>({ seed: 1, generator: (i) => (i <= 10) ? [i, i + 1] : undefined });
+    test("unfold simple sequence 1 to 10", () => expect(Linq.length(oneToTen())).toBe(10));
+
+    class FibonacciState {
+        constructor(readonly n1: number, readonly n2: number) { }
+        readonly shift = () => new FibonacciState(this.n2, this.n1 + this.n2);
+    }
+
+    let fibonacci = () => Linq.unfold({
+        seed: new FibonacciState(0, 1),
+        generator: i => i.n1 > 10000 ? undefined : [i.n1, i.shift()]
+    });
+
+    test("fib1", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 1 }))).toEqual(expect.arrayContaining([0])));
+    test("fib2", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 2 }))).toEqual(expect.arrayContaining([0, 1])));
+    test("fib3", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 3 }))).toEqual(expect.arrayContaining([0, 1, 1])));
+    test("fib4", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 4 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
+    test("fib5", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 5 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
+    test("fib6", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3])));
+    test("fib7", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3, 5])));
+});
 
 test("toSet", () => {
     const result = pipe(

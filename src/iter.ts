@@ -57,8 +57,41 @@ export function toMap<T, TKey, TValue>(source: Iterable<T>, keyValue: (t: T) => 
         i => new Map(i));
 }
 
-export function* range(args: { from: number, to: number }) {
-    for (let i: number = args.from; i <= args.to; i++) {
+export function* init(args: { count: number }) {
+    for (let i: number = 0; i < args.count; i++) {
         yield i;
     }
+}
+
+export function* take<T>(args: { source: Iterable<T>, count: number }) {
+    if (args.count == 0) {
+        return;
+    }
+    else {
+        let taken = 0;
+        for (const i of args.source) {
+            yield i;
+            taken++;
+            if (taken === args.count) {
+                break;
+            }
+        }
+        if (taken != args.count) {
+            throw new Error(`The sequence did not have at least ${args.count} items.`);
+        }
+    }
+}
+
+export function* unfold<T, TState>(args: { seed: TState, generator: (state: TState) => ([T, TState] | undefined) }) {
+    let state: TState | undefined = args.seed;
+    do {
+        let next = args.generator(state);
+        if (next != undefined) {
+            yield next[0];
+            state = next[1];
+        }
+        else {
+            state = undefined;
+        }
+    } while (state != undefined)
 }
