@@ -1,6 +1,6 @@
 import { pipe } from './pipe';
 
-export function* filter<T>(predicate: (item: T) => boolean, source: Iterable<T>) {
+export function* filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
     for (const i of source) {
         if (predicate(i)) {
             yield i;
@@ -8,13 +8,13 @@ export function* filter<T>(predicate: (item: T) => boolean, source: Iterable<T>)
     }
 }
 
-export function* map<T, U>(selector: (t: T) => U, source: Iterable<T>) {
+export function* map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
     for (const i of source) {
         yield selector(i);
     }
 }
 
-export function reduce<T>(accumulator: (t1: T, t2: T) => T, source: Iterable<T>): T | undefined {
+export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T): T | undefined {
     let total: T | undefined;
     for (const i of source) {
         if (total == undefined) {
@@ -28,13 +28,13 @@ export function reduce<T>(accumulator: (t1: T, t2: T) => T, source: Iterable<T>)
 }
 
 export function length<T>(source: Iterable<T>): number {
-    return fold(0, (sum, item) => sum + 1, source);
+    return fold(source, 0, (sum, item) => sum + 1);
 }
 
 export function fold<T, TSum>(
+    source: Iterable<T>,
     seed: TSum,
-    accumulator: (sum: TSum, item: T) => TSum,
-    source: Iterable<T>): TSum {
+    accumulator: (sum: TSum, item: T) => TSum): TSum {
     let total = seed;
     for (const i of source) {
         total = accumulator(total, i);
@@ -53,7 +53,7 @@ export function toSet<T>(source: Iterable<T>) {
 export function toMap<T, TKey, TValue>(source: Iterable<T>, keyValue: (t: T) => [TKey, TValue]): Map<TKey, TValue> {
     return pipe(
         () => source,
-        i => map(keyValue, i),
+        i => map(i, keyValue),
         i => new Map(i));
 }
 

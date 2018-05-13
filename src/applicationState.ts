@@ -1,7 +1,8 @@
-import { Map, Seq } from 'immutable';
 import { T as UniqueId } from './uniqueId';
 import { T as ActionItem, create as createActionItem } from './actionItem';
 import { T as View, create as createView } from './view';
+import { pipe } from './pipe';
+import * as Linq from './linq';
 
 export interface T {
     readonly items: Map<UniqueId, ActionItem>;
@@ -13,7 +14,7 @@ export function create(props: {
     view: View | undefined
 }): T {
     return {
-        items: props.items || Map(Seq(sampleActions()).map(i => [i.uniqueId, i] as [UniqueId, ActionItem])),
+        items: props.items || Linq.toMap(sampleActions(), i => [i.uniqueId, i]),
         view: props.view || createView()
     };
 }
