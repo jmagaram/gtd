@@ -5,7 +5,7 @@ test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(ex
 
 test("range", () => expect(Array.from(Linq.range({ from: 10, to: 12 }))).toEqual(expect.arrayContaining([10, 11, 12])));
 
-test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i != 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
+test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
 
 describe("reduce", () => {
     const addTwo = (a: number, b: number) => a + b;
