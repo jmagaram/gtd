@@ -51,12 +51,12 @@ describe("reduceLazy", () => {
 describe("filter", () => {
     test("when some and predicate true, return same instance", () => {
         const some = Option.some("x");
-        const result = Option.filter(some, i => i == "x");
+        const result = Option.filter(some, i => i === "x");
         expect(result).toBe(some);
     });
     test("when some and predicate false, return undefined", () => {
         const some = Option.some("x");
-        const result = Option.filter(some, i => i == "y");
+        const result = Option.filter(some, i => i === "y");
         expect(result).toBeUndefined();
     });
     test("when none, return undefined", () => expect(Option.filter<string>(Option.none, i => true)).toBeUndefined());
