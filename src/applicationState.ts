@@ -1,5 +1,5 @@
 import { create as createActionItem, T as ActionItem } from './actionItem';
-import * as Linq from './linq';
+import * as Linq from './iter';
 import { T as UniqueId } from './uniqueId';
 import { create as createView, T as View } from './view';
 

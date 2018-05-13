@@ -1,4 +1,4 @@
-import * as Linq from './linq';
+import * as Linq from './iter';
 import { pipe } from './pipe';
 
 test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
