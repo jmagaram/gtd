@@ -64,7 +64,7 @@ export function* init(args: { count: number }) {
 }
 
 export function* take<T>(args: { source: Iterable<T>, count: number }) {
-    if (args.count == 0) {
+    if (args.count === 0) {
         return;
     }
     else {
@@ -76,7 +76,7 @@ export function* take<T>(args: { source: Iterable<T>, count: number }) {
                 break;
             }
         }
-        if (taken != args.count) {
+        if (taken !== args.count) {
             throw new Error(`The sequence did not have at least ${args.count} items.`);
         }
     }
@@ -85,13 +85,13 @@ export function* take<T>(args: { source: Iterable<T>, count: number }) {
 export function* unfold<T, TState>(args: { seed: TState, generator: (state: TState) => ([T, TState] | undefined) }) {
     let state: TState | undefined = args.seed;
     do {
-        let next = args.generator(state);
-        if (next != undefined) {
+        const next = args.generator(state);
+        if (next !== undefined) {
             yield next[0];
             state = next[1];
         }
         else {
             state = undefined;
         }
-    } while (state != undefined)
+    } while (state !== undefined)
 }

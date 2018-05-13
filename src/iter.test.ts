@@ -58,7 +58,7 @@ describe("unfold", () => {
         public readonly shift = () => new FibonacciState(this.n2, this.n1 + this.n2);
     }
 
-    let fibonacci = () => Linq.unfold({
+    const fibonacci = () => Linq.unfold({
         seed: new FibonacciState(0, 1),
         generator: i => i.n1 > 10000 ? undefined : [i.n1, i.shift()]
     });
