@@ -1,7 +1,7 @@
-import { T as UniqueId } from './uniqueId';
-import { T as ActionItem, create as createActionItem } from './actionItem';
-import { T as View, create as createView } from './view';
+import { create as createActionItem, T as ActionItem } from './actionItem';
 import * as Linq from './linq';
+import { T as UniqueId } from './uniqueId';
+import { create as createView, T as View } from './view';
 
 export interface T {
     readonly items: Map<UniqueId, ActionItem>;
