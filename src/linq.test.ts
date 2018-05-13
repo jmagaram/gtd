@@ -34,3 +34,11 @@ test("toSet", () => {
         Linq.toArray);
     expect(result).toEqual([1, 2, 3, 4, 5]);
 })
+
+test("map", () => {
+    let result = Linq.toMap([1, 2, 3], i => [i, i.toString()]);
+    expect(result.size).toBe(3);
+    expect(result.get(1)).toBe("1");
+    expect(result.get(2)).toBe("2");
+    expect(result.get(3)).toBe("3");
+})

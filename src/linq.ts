@@ -1,3 +1,5 @@
+import { pipe } from './pipe';
+
 export function* filter<T>(predicate: (item: T) => boolean, source: Iterable<T>) {
     for (const i of source) {
         if (predicate(i)) {
@@ -48,12 +50,15 @@ export function toSet<T>(source: Iterable<T>) {
     return new Set<T>(source);
 }
 
+export function toMap<T, TKey, TValue>(source: Iterable<T>, keyValue: (t: T) => [TKey, TValue]): Map<TKey, TValue> {
+    return pipe(
+        () => source,
+        i => map(keyValue, i),
+        i => new Map(i));
+}
+
 export function* range(args: { from: number, to: number }) {
     for (let i: number = args.from; i <= args.to; i++) {
         yield i;
     }
 }
-
-
-
-
