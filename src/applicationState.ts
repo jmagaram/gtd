@@ -1,7 +1,6 @@
 import { T as UniqueId } from './uniqueId';
 import { T as ActionItem, create as createActionItem } from './actionItem';
 import { T as View, create as createView } from './view';
-import { pipe } from './pipe';
 import * as Linq from './linq';
 
 export interface T {
