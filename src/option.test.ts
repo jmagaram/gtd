@@ -83,14 +83,14 @@ describe("map", () => {
 });
 
 describe("mapOption", () => {
-    test("when some, return mapped value flattened.", () => expect(Option.mapOption<string, number>("a", i => Option.some((i === "a") ? 100 : -1))).toBe(100));
+    test("when some, return mapped value flattened.", () => expect(Option.mapOption<string, number>("a", i => Option.create((i === "a") ? 100 : -1))).toBe(100));
     test("when undefined, return undefined without executing function.", () => {
-        const returnNumber = jest.fn((i: string) => Option.some(1));
+        const returnNumber = jest.fn((i: string) => Option.create(1));
         expect(Option.mapOption<string, number>(undefined, returnNumber)).toBeUndefined();
         expect(returnNumber.mock.calls.length).toBe(0);
     });
     test("when null, return undefined without executing function.", () => {
-        const returnNumber = jest.fn((i: any) => Option.some(1));
+        const returnNumber = jest.fn((i: any) => Option.create(1));
         expect(Option.mapOption<any, number>(null, returnNumber)).toBeUndefined();
         expect(returnNumber.mock.calls.length).toBe(0);
     });
