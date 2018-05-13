@@ -33,8 +33,8 @@ export function toSet<T>(source: Iterable<T>) {
     return new Set<T>(source);
 }
 
-export function* range(from: number, to: number) {
-    for (let i: number = from; i <= to; i++) {
+export function* range(args: { from: number, to: number }) {
+    for (let i: number = args.from; i <= args.to; i++) {
         yield i;
     }
 }

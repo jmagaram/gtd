@@ -3,7 +3,7 @@ import * as Linq from './linq';
 
 test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
 
-test("range", () => expect(Array.from(Linq.range(10, 12))).toEqual(expect.arrayContaining([10, 11, 12])));
+test("range", () => expect(Array.from(Linq.range({ from: 10, to: 12 }))).toEqual(expect.arrayContaining([10, 11, 12])));
 
 test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => i != 2))).toEqual(expect.arrayContaining([1, 3, 4])));
 
