@@ -14,6 +14,12 @@ describe("reduce", () => {
     test("many items", () => expect(Linq.reduce(addTwo, [1, 2, 3])).toBe(6));
 })
 
+describe("length", () => {
+    test("zero items", () => expect(Linq.length([])).toBe(0));
+    test("one item", () => expect(Linq.length(["a"])).toBe(1));
+    test("many items", () => expect(Linq.length(["a", "b", "c"])).toBe(3));
+})
+
 describe("fold", () => {
     let concatTwo = (a: string, b: string) => `${a}${b}`;
     test("zero items", () => expect(Linq.fold("z", concatTwo, [])).toBe("z"));

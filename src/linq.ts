@@ -25,6 +25,10 @@ export function reduce<T>(accumulator: (t1: T, t2: T) => T, source: Iterable<T>)
     return total;
 }
 
+export function length<T>(source: Iterable<T>): number {
+    return fold(0, (sum, item) => sum + 1, source);
+}
+
 export function fold<T, TSum>(
     seed: TSum,
     accumulator: (sum: TSum, item: T) => TSum,
