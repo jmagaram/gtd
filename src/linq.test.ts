@@ -1,22 +1,24 @@
 import { pipe } from './pipe';
 import * as Linq from './linq';
 
-test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
+test("map", () => expect(Array.from(Linq.map(i => i * 2, [1, 2, 3]))).toEqual(expect.arrayContaining([2, 4, 6])));
 
 test("range", () => expect(Array.from(Linq.range({ from: 10, to: 12 }))).toEqual(expect.arrayContaining([10, 11, 12])));
 
-test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => i != 2))).toEqual(expect.arrayContaining([1, 3, 4])));
+test("filter", () => expect(Array.from(Linq.filter(i => i != 2, [1, 2, 3, 4]))).toEqual(expect.arrayContaining([1, 3, 4])));
 
 describe("reduce", () => {
-    test("zero items", () => expect(Linq.reduce<number>([], (i, j) => i + j)).toBeUndefined());
-    test("one item", () => expect(Linq.reduce([1], (i, j) => i + j)).toBe(1));
-    test("many items", () => expect(Linq.reduce([1, 2, 3], (i, j) => i + j)).toBe(6));
+    let addTwo = (a: number, b: number) => a + b;
+    test("zero items", () => expect(Linq.reduce<number>(addTwo, [])).toBeUndefined());
+    test("one item", () => expect(Linq.reduce(addTwo, [1])).toBe(1));
+    test("many items", () => expect(Linq.reduce(addTwo, [1, 2, 3])).toBe(6));
 })
 
 describe("fold", () => {
-    test("zero items", () => expect(Linq.fold([], "z", (sum, i) => `${sum}${i}`)).toBe("z"));
-    test("one item", () => expect(Linq.fold(["a"], "z", (sum, i) => `${sum}${i}`)).toBe("za"));
-    test("many items", () => expect(Linq.fold(["a", "b", "c", "d"], "z", (sum, i) => `${sum}${i}`)).toBe("zabcd"));
+    let concatTwo = (a: string, b: string) => `${a}${b}`;
+    test("zero items", () => expect(Linq.fold("z", concatTwo, [])).toBe("z"));
+    test("one item", () => expect(Linq.fold("z", concatTwo, ["a"])).toBe("za"));
+    test("many items", () => expect(Linq.fold("z", concatTwo, ["a", "b", "c", "d"])).toBe("zabcd"));
 })
 
 test("toSet", () => {
