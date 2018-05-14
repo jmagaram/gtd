@@ -42,27 +42,6 @@ export function fold<T, TSum>(
     return total;
 }
 
-export function toArray<T>(source: Iterable<T>) {
-    return Array.from(source);
-}
-
-export function toSet<T>(source: Iterable<T>) {
-    return new Set<T>(source);
-}
-
-export function toMap<T, TKey, TValue>(source: Iterable<T>, keyValue: (t: T) => [TKey, TValue]): Map<TKey, TValue> {
-    return pipe(
-        () => source,
-        i => map(i, keyValue),
-        i => new Map(i));
-}
-
-export function* init(args: { count: number }) {
-    for (let i: number = 0; i < args.count; i++) {
-        yield i;
-    }
-}
-
 export function* take<T>(args: { source: Iterable<T>, count: number }) {
     if (args.count === 0) {
         return;
@@ -82,16 +61,47 @@ export function* take<T>(args: { source: Iterable<T>, count: number }) {
     }
 }
 
-export function* unfold<T, TState>(args: { seed: TState, generator: (state: TState) => ([T, TState] | undefined) }) {
-    let state: TState | undefined = args.seed;
-    do {
-        const next = args.generator(state);
-        if (next !== undefined) {
-            yield next[0];
-            state = next[1];
+export function toArray<T>(source: Iterable<T>) {
+    return Array.from(source);
+}
+
+export function toSet<T>(source: Iterable<T>) {
+    return new Set<T>(source);
+}
+
+export function toMap<T, TKey, TValue>(source: Iterable<T>, keyValue: (t: T) => [TKey, TValue]): Map<TKey, TValue> {
+    return pipe(
+        () => source,
+        i => map(i, keyValue),
+        i => new Map(i));
+}
+
+export function init(args: { count: number }): Iterable<number> {
+    function* items() {
+        for (let i: number = 0; i < args.count; i++) {
+            yield i;
         }
-        else {
-            state = undefined;
-        }
-    } while (state !== undefined)
+    }
+    return {
+        [Symbol.iterator]: items
+    }
+}
+
+export function unfold<T, TState>(args: { seed: TState, generator: (state: TState) => ([T, TState] | undefined) }) {
+    function* items() {
+        let state: TState | undefined = args.seed;
+        do {
+            const next = args.generator(state);
+            if (next !== undefined) {
+                yield next[0];
+                state = next[1];
+            }
+            else {
+                state = undefined;
+            }
+        } while (state !== undefined)
+    }
+    return {
+        [Symbol.iterator]: items
+    }
 }

@@ -3,7 +3,15 @@ import { pipe } from './pipe';
 
 test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
 
-test("init", () => expect(Array.from(Linq.init({ count: 5 }))).toEqual(expect.arrayContaining([0, 1, 2, 3, 4])));
+describe("init", () => {
+    test("init", () => expect(Array.from(Linq.init({ count: 5 }))).toEqual(expect.arrayContaining([0, 1, 2, 3, 4])));
+    test("can interate multiple times", () => {
+        const x = Linq.init({ count: 10 });
+        const array1 = Array.from(x);
+        const array2 = Array.from(x);
+        expect(array1.length).toBe(array2.length);
+    });
+});
 
 test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
 
@@ -58,18 +66,19 @@ describe("unfold", () => {
         public readonly shift = () => new FibonacciState(this.n2, this.n1 + this.n2);
     }
 
-    const fibonacci = () => Linq.unfold({
+    // can fix everything by making this a function, but why?
+    const fibonacci = Linq.unfold({
         seed: new FibonacciState(0, 1),
         generator: i => i.n1 > 10000 ? undefined : [i.n1, i.shift()]
     });
 
-    test("fib1", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 1 }))).toEqual(expect.arrayContaining([0])));
-    test("fib2", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 2 }))).toEqual(expect.arrayContaining([0, 1])));
-    test("fib3", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 3 }))).toEqual(expect.arrayContaining([0, 1, 1])));
-    test("fib4", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 4 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
-    test("fib5", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 5 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
-    test("fib6", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3])));
-    test("fib7", () => expect(Array.from(Linq.take({ source: fibonacci(), count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3, 5])));
+    test("fib1", () => expect(Array.from(Linq.take({ source: fibonacci, count: 1 }))).toEqual(expect.arrayContaining([0])));
+    test("fib2", () => expect(Array.from(Linq.take({ source: fibonacci, count: 2 }))).toEqual(expect.arrayContaining([0, 1])));
+    test("fib3", () => expect(Array.from(Linq.take({ source: fibonacci, count: 3 }))).toEqual(expect.arrayContaining([0, 1, 1])));
+    test("fib4", () => expect(Array.from(Linq.take({ source: fibonacci, count: 4 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
+    test("fib5", () => expect(Array.from(Linq.take({ source: fibonacci, count: 5 }))).toEqual(expect.arrayContaining([0, 1, 1, 2])));
+    test("fib6", () => expect(Array.from(Linq.take({ source: fibonacci, count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3])));
+    test("fib7", () => expect(Array.from(Linq.take({ source: fibonacci, count: 6 }))).toEqual(expect.arrayContaining([0, 1, 1, 2, 3, 5])));
 });
 
 test("toSet", () => {
