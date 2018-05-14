@@ -1,3 +1,5 @@
+import { generatorToIteraable } from './generatorToIterable';
+
 export function take<T>(args: { source: Iterable<T>, count: number }) {
     function* items() {
         if (args.count === 0) {
@@ -17,6 +19,6 @@ export function take<T>(args: { source: Iterable<T>, count: number }) {
             }
         }
     }
-    return { [Symbol.iterator]: items };
+    return generatorToIteraable(items);
 }
 

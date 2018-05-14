@@ -1,3 +1,5 @@
+import { generatorToIteraable } from './generatorToIterable';
+
 export function unfold<T, TState>(args: { seed: TState, generator: (state: TState) => ([T, TState] | undefined) }) {
     function* items() {
         let state: TState | undefined = args.seed;
@@ -12,7 +14,5 @@ export function unfold<T, TState>(args: { seed: TState, generator: (state: TStat
             }
         } while (state !== undefined)
     }
-    return {
-        [Symbol.iterator]: items
-    }
+    return generatorToIteraable(items);
 }
