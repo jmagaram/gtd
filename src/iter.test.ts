@@ -1,7 +1,15 @@
 import * as Linq from './iter';
 import { pipe } from './pipe';
 
-test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
+describe("map", () => {
+    test("map", () => expect(Array.from(Linq.map([1, 2, 3], i => i * 2))).toEqual(expect.arrayContaining([2, 4, 6])));
+    test("can enumerate results more than once", () => {
+        const x = Linq.map([1, 2, 3], i => i);
+        const array1 = Array.from(x);
+        const array2 = Array.from(x);
+        expect(array1.length).toBe(array2.length);
+    });
+});
 
 describe("init", () => {
     test("init", () => expect(Array.from(Linq.init({ count: 5 }))).toEqual(expect.arrayContaining([0, 1, 2, 3, 4])));
@@ -13,7 +21,15 @@ describe("init", () => {
     });
 });
 
-test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
+describe("filter", () => {
+    test("filter", () => expect(Array.from(Linq.filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
+    test("can enumerate filter results more than once", () => {
+        const r = Linq.filter([1, 2, 3], i => true);
+        const array1 = Array.from(r);
+        const array2 = Array.from(r);
+        expect(array1.length).toBe(array2.length);
+    });
+});
 
 describe("reduce", () => {
     const addTwo = (a: number, b: number) => a + b;
@@ -48,6 +64,13 @@ describe("take", () => {
 
     test("4 from 3", () => expect(() => Array.from(Linq.take({ source: [1, 2, 3], count: 4 }))).toThrowError());
     test("1 from 0", () => expect(() => Array.from(Linq.take({ source: [], count: 1 }))).toThrowError());
+
+    test("can take repeatedly and get same result", () => {
+        const x = Linq.take({ source: [1, 2, 3], count: 3 });
+        const array1 = Array.from(x);
+        const array2 = Array.from(x);
+        expect(array1.length).toBe(array2.length);
+    });
 })
 
 describe("fold", () => {

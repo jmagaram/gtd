@@ -1,17 +1,23 @@
 import { pipe } from './pipe';
 
-export function* filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
-    for (const i of source) {
-        if (predicate(i)) {
-            yield i;
+export function filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
+    function* items() {
+        for (const i of source) {
+            if (predicate(i)) {
+                yield i;
+            }
         }
     }
+    return { [Symbol.iterator]: items }
 }
 
-export function* map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
-    for (const i of source) {
-        yield selector(i);
+export function map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
+    function* items() {
+        for (const i of source) {
+            yield selector(i);
+        }
     }
+    return { [Symbol.iterator]: items }
 }
 
 export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T): T | undefined {
@@ -42,23 +48,26 @@ export function fold<T, TSum>(
     return total;
 }
 
-export function* take<T>(args: { source: Iterable<T>, count: number }) {
-    if (args.count === 0) {
-        return;
-    }
-    else {
-        let taken = 0;
-        for (const i of args.source) {
-            yield i;
-            taken++;
-            if (taken === args.count) {
-                break;
+export function take<T>(args: { source: Iterable<T>, count: number }) {
+    function* items() {
+        if (args.count === 0) {
+            return;
+        }
+        else {
+            let taken = 0;
+            for (const i of args.source) {
+                yield i;
+                taken++;
+                if (taken === args.count) {
+                    break;
+                }
+            }
+            if (taken !== args.count) {
+                throw new Error(`The sequence did not have at least ${args.count} items.`);
             }
         }
-        if (taken !== args.count) {
-            throw new Error(`The sequence did not have at least ${args.count} items.`);
-        }
     }
+    return { [Symbol.iterator]: items };
 }
 
 export function toArray<T>(source: Iterable<T>) {
