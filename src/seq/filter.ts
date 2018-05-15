@@ -1,4 +1,4 @@
-import { generatorToIteraable } from './generatorToIterable';
+import { fromGenerator } from './fromGenerator';
 
 export function filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
     function* items() {
@@ -8,5 +8,5 @@ export function filter<T>(source: Iterable<T>, predicate: (item: T) => boolean) 
             }
         }
     }
-    return generatorToIteraable(items);
+    return fromGenerator(items);
 }

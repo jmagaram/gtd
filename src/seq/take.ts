@@ -1,4 +1,4 @@
-import { generatorToIteraable } from './generatorToIterable';
+import { fromGenerator } from './fromGenerator';
 
 export function take<T>(args: { source: Iterable<T>, count: number }) {
     function* items() {
@@ -19,6 +19,6 @@ export function take<T>(args: { source: Iterable<T>, count: number }) {
             }
         }
     }
-    return generatorToIteraable(items);
+    return fromGenerator(items);
 }
 

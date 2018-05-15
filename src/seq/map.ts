@@ -1,4 +1,4 @@
-import { generatorToIteraable } from './generatorToIterable';
+import { fromGenerator } from './fromGenerator';
 
 export function map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
     function* items() {
@@ -6,5 +6,5 @@ export function map<T, U>(source: Iterable<T>, selector: (t: T) => U) {
             yield selector(i);
         }
     }
-    return generatorToIteraable(items);
+    return fromGenerator(items);
 }

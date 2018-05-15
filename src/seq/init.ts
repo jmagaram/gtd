@@ -1,4 +1,4 @@
-import { generatorToIteraable } from './generatorToIterable';
+import { fromGenerator } from './fromGenerator';
 
 export function init(args: { count: number }): Iterable<number> {
     function* items() {
@@ -6,5 +6,5 @@ export function init(args: { count: number }): Iterable<number> {
             yield i;
         }
     }
-    return generatorToIteraable(items);
+    return fromGenerator(items);
 }
