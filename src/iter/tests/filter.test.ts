@@ -1,4 +1,4 @@
-import { filter } from './filter'
+import { filter } from '../filter'
 
 test("filter", () => expect(Array.from(filter([1, 2, 3, 4], i => (i !== 2)))).toEqual(expect.arrayContaining([1, 3, 4])));
 

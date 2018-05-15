@@ -1,4 +1,4 @@
-import { reduce } from './reduce'
+import { reduce } from '../reduce'
 
 const addTwo = (a: number, b: number) => a + b;
 test("zero items", () => expect(reduce<number>([], addTwo)).toBeUndefined());

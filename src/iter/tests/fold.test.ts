@@ -1,4 +1,4 @@
-import { fold } from './fold'
+import { fold } from '../fold'
 
 const concatTwo = (a: string, b: string) => `${a}${b}`;
 test("zero items", () => expect(fold([], "z", concatTwo)).toBe("z"));

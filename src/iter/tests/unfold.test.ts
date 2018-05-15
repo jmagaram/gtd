@@ -1,6 +1,6 @@
-import { length } from './length'
-import { take } from './take'
-import { unfold } from './unfold'
+import { length } from '../length'
+import { take } from '../take'
+import { unfold } from '../unfold'
 
 const oneToTen = () => unfold<number, number>({ seed: 1, generator: (i) => (i <= 10) ? [i, i + 1] : undefined });
 test("unfold simple sequence 1 to 10", () => expect(length(oneToTen())).toBe(10));

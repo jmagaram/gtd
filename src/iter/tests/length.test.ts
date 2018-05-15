@@ -1,4 +1,4 @@
-import { length } from './length'
+import { length } from '../length'
 
 test("zero items", () => expect(length([])).toBe(0));
 test("one item", () => expect(length(["a"])).toBe(1));

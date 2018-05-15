@@ -1,4 +1,4 @@
-import { init } from './init'
+import { init } from '../init'
 
 test("init", () => expect(Array.from(init({ count: 5 }))).toEqual(expect.arrayContaining([0, 1, 2, 3, 4])));
 

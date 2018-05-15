@@ -1,4 +1,4 @@
-import { take } from './take'
+import { take } from '../take'
 
 test("0 from 3", () => expect(Array.from(take({ source: [1, 2, 3], count: 0 }))).toEqual(expect.arrayContaining([])));
 test("1 from 3", () => expect(Array.from(take({ source: [1, 2, 3], count: 1 }))).toEqual(expect.arrayContaining([1])));
