@@ -1,6 +1,5 @@
+import * as Seq from 'sequency';
 import { create as createActionItem, T as ActionItem } from './actionItem';
-import { map } from './iter/map';
-import { pipe } from './pipe';
 import { T as UniqueId } from './uniqueId';
 import { create as createView, T as View } from './view';
 
@@ -14,18 +13,17 @@ export function create(props: {
     view: View | undefined
 }): T {
     return {
-        items: props.items || sampleActionsMap,
+        items: props.items || sampleActions,
         view: props.view || createView()
     };
 }
 
-const sampleActionsMap = pipe(
-    () => sampleActions(),
-    i => map(i, j => [j.uniqueId, j] as [UniqueId, ActionItem]),
-    i => new Map(i)
-);
+const sampleActions = Seq
+    .asSequence(sampleActionsGenerator())
+    .map(i => [i.uniqueId, i] as [UniqueId, ActionItem])
+    .toMap();
 
-function* sampleActions() {
+function* sampleActionsGenerator() {
     yield createActionItem({ title: "Change the light bulbs" });
     yield createActionItem({ title: "Empty the fridge" });
     yield createActionItem({ title: "Work out in the gym", isImportant: true });
