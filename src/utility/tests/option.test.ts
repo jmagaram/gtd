@@ -1,4 +1,4 @@
-import * as Option from './option'
+import * as Option from '../option'
 
 describe("some", () => {
     test("when null, throw", () => expect(() => Option.some<any>(null)).toThrow());

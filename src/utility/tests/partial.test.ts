@@ -1,4 +1,4 @@
-import { partial } from './partial'
+import { partial } from '../partial'
 
 interface AddThreeNumbersArgs {
     a: number;
