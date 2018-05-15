@@ -1,5 +1,4 @@
 import * as Seq from 'sequency'
-import { pipe } from './pipe';
 import * as UniqueId from './uniqueId';
 
 test("when create 1000, each instance is unique", () => {
