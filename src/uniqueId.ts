@@ -1,5 +1,5 @@
 import { v1 } from 'uuid';
-import * as Tagged from './tagged';
+import * as Tagged from './utility/tagged';
 
 export type T = Tagged.T<string, "uniqueId">;
 

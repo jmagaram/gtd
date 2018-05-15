@@ -1,4 +1,4 @@
-import * as Tagged from './tagged';
+import * as Tagged from '../tagged';
 
 type Email = Tagged.T<string, "email">;
 type Country = Tagged.T<string, "country">;
