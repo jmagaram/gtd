@@ -4,7 +4,7 @@ import { last } from './last'
 import { mapi } from './mapi'
 import { truncate } from './truncate'
 
-export function single<T>(source: Iterable<T>): T | undefined {
+export function exactlyOne<T>(source: Iterable<T>): T | undefined {
     return pipe(
         () => source,
         i => truncate(i, 2),

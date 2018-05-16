@@ -1,7 +1,7 @@
-import { single } from './single'
+import { exactlyOne } from './exactlyOne'
 import { truncate } from './truncate'
 
 export function head<T>(source: Iterable<T>): T | undefined {
-    return single(truncate(source, 1));
+    return exactlyOne(truncate(source, 1));
 }
 
