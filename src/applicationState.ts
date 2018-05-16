@@ -1,6 +1,7 @@
-import * as Seq from 'sequency';
 import { create as createActionItem, T as ActionItem } from './actionItem';
+import * as Seq from './seq/index';
 import { T as UniqueId } from './uniqueId';
+import { pipe } from './utility/pipe';
 import { create as createView, T as View } from './view';
 
 export interface T {
@@ -13,15 +14,15 @@ export function create(props: {
     view: View | undefined
 }): T {
     return {
-        items: props.items || sampleActions,
+        items: props.items || sampleActions(),
         view: props.view || createView()
     };
 }
 
-const sampleActions = Seq
-    .asSequence(sampleActionsGenerator())
-    .map(i => [i.uniqueId, i] as [UniqueId, ActionItem])
-    .toMap();
+const sampleActions = pipe(
+    () => Seq.fromGenerator(sampleActionsGenerator),
+    i => Seq.map(i, j => [j.uniqueId, j] as [UniqueId, ActionItem]),
+    i => new Map(i));
 
 function* sampleActionsGenerator() {
     yield createActionItem({ title: "Change the light bulbs" });

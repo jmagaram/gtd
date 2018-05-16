@@ -1,4 +1,4 @@
-import * as Store from './stateStore';
+import * as Store from '../atomDb';
 
 interface AddAction {
     readonly kind: "add",

@@ -7,8 +7,7 @@
     "react-dom": "^16.3.2",
     "react-scripts-ts": "2.15.1",
     "rxjs": "6.1.0",
-    "uuid": "3.2.1",
-    "sequency": "0.18.0"
+    "uuid": "3.2.1"
   },
   "scripts": {
     "start": "react-scripts-ts start",
