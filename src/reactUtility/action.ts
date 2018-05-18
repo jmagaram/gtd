@@ -10,10 +10,10 @@ export interface TWithPayload<Type extends string, Payload> extends T<Type> {
     readonly payload: Payload;
 }
 
-export function create<Type extends string>(type: Type): T<Type>;
+export function createAction<Type extends string>(type: Type): T<Type>;
 
-export function create<Type extends string, Payload>(type: Type, payload: Payload): TWithPayload<Type, Payload>;
+export function createAction<Type extends string, Payload>(type: Type, payload: Payload): TWithPayload<Type, Payload>;
 
-export function create<Type extends string, Payload>(type: Type, payload?: Payload) {
+export function createAction<Type extends string, Payload>(type: Type, payload?: Payload) {
     return (payload === undefined) ? { type } : { type, payload };
 }
