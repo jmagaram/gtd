@@ -1,6 +1,6 @@
 import { BehaviorSubject, Observable } from 'rxjs';
 
-interface T<TState, TAction> {
+export interface T<TState, TAction> {
     state$: Observable<TState>;
     dispatch(command: TAction): void;
 }
