@@ -1,4 +1,4 @@
-import * as ActionMapReducer from 'src/actionMap.reducer'
+import * as ActionMapReducer from 'src/actionItemMap.reducer'
 import * as AppState from 'src/appState'
 import * as AppStateActions from 'src/appState.actions'
 import * as Reducer from 'src/reactUtility/reducer'

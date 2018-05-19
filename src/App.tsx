@@ -1,4 +1,5 @@
 import * as React from 'react';
+import * as ActionItemList from 'src/containers/ActionItemListContainer'
 import * as View from 'src/containers/View'
 import * as Store from 'src/store'
 import './App.css';
@@ -19,6 +20,7 @@ class App extends React.Component {
           To get started, edit <code>src/App.tsx</code> and save to reload.
         </p>
         <View.T store={store} />
+        <ActionItemList.T store={store} />
       </div>
     );
   }

@@ -9,7 +9,7 @@ const create = (
     isImportant: boolean,
     isComplete: boolean) => createAction("actionItemMap/create", { title, isImportant, isComplete });
 
-const factories = {
+export const factories = {
     purge,
     create
 }

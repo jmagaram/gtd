@@ -18,6 +18,9 @@
     },
     "prefer-const": {
       "severity": "warning"
+    },
+    "member-ordering": {
+      "severity": "warning"
     }
   }
 }
