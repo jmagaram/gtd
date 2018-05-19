@@ -1,5 +1,5 @@
 import * as React from 'react';
-import * as View from 'src/components/View'
+import * as View from 'src/containers/View'
 import * as Store from 'src/store'
 import './App.css';
 
