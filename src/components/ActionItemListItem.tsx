@@ -38,5 +38,5 @@ export const T: React.StatelessComponent<Properties> = (p: Properties) => {
     const handleOnToggleComplete = (e: React.MouseEvent<HTMLSpanElement>) => p.onToggleComplete();
     const handleOnDelete = (e: React.MouseEvent<HTMLSpanElement>) => p.onDelete();
 
-    return <p><span onClick={handleOnToggleImportant} style={impStyle}>Important</span><span onClick={handleOnDelete}>delete</span><span onClick={handleOnToggleComplete} style={titleStyle}>{p.title}</span></p>
+    return <p><span onClick={handleOnToggleImportant} style={impStyle}>imp</span>&nbsp;&nbsp;<span onClick={handleOnDelete}>del</span>&nbsp;&nbsp;<span onClick={handleOnToggleComplete} style={titleStyle}>{p.title}</span></p>
 };
