@@ -1,9 +1,10 @@
 import * as React from 'react';
 import { Observable, Subscription } from "rxjs";
+import { filter } from 'rxjs/operators';
 
 export abstract class T<TProps, TState> extends React.Component<TProps, TState> {
     private subscription: Subscription;
-    private state$: Observable<TState>;
+    private state$: Observable<TState | undefined>;
 
     constructor(props: TProps) {
         super(props);
@@ -28,7 +29,11 @@ export abstract class T<TProps, TState> extends React.Component<TProps, TState> 
         }
         this.subscription = this
             .state$
-            .subscribe(s => this.setState(s));
+            .subscribe(s => {
+                if (s !== undefined) {
+                    this.setState(s);
+                }
+            })
     }
 
     public componentWillUnmount() {
@@ -37,5 +42,5 @@ export abstract class T<TProps, TState> extends React.Component<TProps, TState> 
         }
     }
 
-    protected abstract stateFactory(props: TProps): Observable<TState>;
+    protected abstract stateFactory(props: TProps): Observable<TState | undefined>;
 }
