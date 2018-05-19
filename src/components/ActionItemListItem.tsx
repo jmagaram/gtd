@@ -34,6 +34,9 @@ const notImportantStyle: React.CSSProperties = {
 export const T: React.StatelessComponent<Properties> = (p: Properties) => {
     const titleStyle = (p.isComplete) ? completedStyle : incompleteStyle;
     const impStyle = (p.isImportant) ? importantStyle : notImportantStyle;
-    // tslint:disable-next-line:jsx-no-lambda
-    return <p><span onClick={e => p.onToggleImportant} style={impStyle}>Important</span><span onClick={e => p.onToggleComplete} style={titleStyle}>{p.title}</span></p>
+    const handleOnToggleImportant = (e: React.MouseEvent<HTMLButtonElement>) => p.onToggleImportant();
+    const handleOnToggleComplete = (e: React.MouseEvent<HTMLSpanElement>) => p.onToggleComplete();
+    const handleOnDelete = (e: React.MouseEvent<HTMLSpanElement>) => p.onDelete();
+
+    return <p><span onClick={handleOnToggleImportant} style={impStyle}>Important</span><span onClick={handleOnDelete}>delete</span><span onClick={handleOnToggleComplete} style={titleStyle}>{p.title}</span></p>
 };

@@ -1,6 +1,5 @@
 import * as React from 'react';
 import { Observable, Subscription } from "rxjs";
-import { filter } from 'rxjs/operators';
 
 export abstract class T<TProps, TState> extends React.Component<TProps, TState> {
     private subscription: Subscription;

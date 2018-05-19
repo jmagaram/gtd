@@ -23,20 +23,26 @@ export class T extends ObservableStateComponent<Props, ActionItemProperties> {
         return <ActionItemListItem {...this.state} />
     }
 
-    protected stateFactory(props: { store: Store.T; }): Rx.Observable<ActionItemProperties> {
+    protected stateFactory(props: { store: Store.T; }): Rx.Observable<ActionItemProperties | undefined> {
         const p = props.store.state$.pipe(
             map(i => {
-                const source = i.actionItems.get(this.props.uniqueId)!;
-                const result: ActionItemProperties = {
-                    isComplete: source.isComplete,
-                    isImportant: source.isImportant,
-                    title: source.title,
-                    key: source.uniqueId,
-                    onDelete: () => ActionItemMapActions.factories.purge(source.uniqueId),
-                    onToggleComplete: () => ActionItemActions.factories.toggleComplete(source.uniqueId),
-                    onToggleImportant: () => ActionItemActions.factories.toggleImportant(source.uniqueId)
-                };
-                return result; // need distinct on changed I think otherwise state always updated
+                const id = i.actionItems.get(this.props.uniqueId);
+                if (id === undefined) {
+                    return undefined;
+                }
+                else {
+                    const source = id!;
+                    const result: ActionItemProperties = {
+                        isComplete: source.isComplete,
+                        isImportant: source.isImportant,
+                        title: source.title,
+                        key: source.uniqueId,
+                        onDelete: () => this.props.store.dispatch(ActionItemMapActions.factories.purge(source.uniqueId)),
+                        onToggleComplete: () => this.props.store.dispatch(ActionItemActions.factories.toggleComplete(source.uniqueId)),
+                        onToggleImportant: () => this.props.store.dispatch(ActionItemActions.factories.toggleImportant(source.uniqueId))
+                    };
+                    return result; // need distinct on changed I think otherwise state always updated
+                }
             }));
         return p;
     }
