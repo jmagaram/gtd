@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { T as ActionItemContainer } from 'src/containers/ActionItemContainer'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import * as Seq from 'src/seq/index'
@@ -29,17 +29,20 @@ export class T extends ObservableStateComponent<Props, State> {
         </ul>;
     }
 
-    private createState(store: AppState): State {
+    private visibleItems(store: AppState): UniqueId[] {
         const isImportantMatch = (item: ActionItem.T) => store.view.important === "Both" || (store.view.important === "Important" && item.isImportant) || (store.view.important === "NotImportant" && !item.isImportant);
         const isStatusMatch = (item: ActionItem.T) => store.view.status === "Both" || (store.view.status === "Complete" && item.isComplete) || (store.view.status === "Incomplete" && !item.isComplete);
         const items = pipe(
             () => store.actionItems.values(),
             i => Seq.choose<ActionItem.T, UniqueId>(i, j => (isImportantMatch(j) && isStatusMatch(j)) ? j.uniqueId : undefined),
             i => Array.from(i));
-        return { items: items() };
+        return items();
     }
 
     protected stateFactory(props: { store: Store.T; }): Rx.Observable<State> {
-        return props.store.state$.pipe(map(i => this.createState(i)));
+        return props.store.state$.pipe(
+            map(i => this.visibleItems(i)),
+            distinctUntilChanged((x, y) => Seq.all(Seq.zip2<UniqueId, UniqueId>(x, y), j => j[0] === j[1])),
+            map(i => ({ items: i })));
     }
 }
