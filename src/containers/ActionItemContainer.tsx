@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
-import { distinctUntilChanged, map } from 'rxjs/operators';
+import { distinctUntilChanged, filter as rxFilter, map } from 'rxjs/operators';
 import * as ActionItem from 'src/actionItem'
 import { factory as actionFactory } from 'src/actions'
 import { T as ActionItemListItem } from 'src/components/ActionItemListItem'
@@ -8,6 +8,7 @@ import { Properties as ActionItemProperties } from 'src/components/ActionItemLis
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import * as Store from 'src/store'
 import { T as UniqueId } from 'src/uniqueId'
+import { filter } from '../seq';
 
 interface Props {
     uniqueId: UniqueId;
@@ -35,10 +36,11 @@ export class T extends ObservableStateComponent<Props, ActionItemProperties> {
         };
     }
 
-    protected stateFactory(props: { store: Store.T; }): Rx.Observable<ActionItemProperties | undefined> {
+    protected stateFactory(props: { store: Store.T; }): Rx.Observable<ActionItemProperties> {
         return props.store.state$.pipe(
             map(i => i.actionItems.get(this.props.uniqueId)),
+            rxFilter(i => i !== undefined),
             distinctUntilChanged(),
-            map(i => (i === undefined) ? undefined : this.createProperties(i)));
+            map(i => this.createProperties(i!)));
     }
 }
