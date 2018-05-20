@@ -8,7 +8,6 @@ import { Properties as ActionItemProperties } from 'src/components/ActionItemLis
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import * as Store from 'src/store'
 import { T as UniqueId } from 'src/uniqueId'
-import { filter } from '../seq';
 
 interface Props {
     uniqueId: UniqueId;
