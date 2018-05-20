@@ -1,11 +1,12 @@
-import * as AppState from 'src/appState.actions'
+import { ActionTypes, factory as actionFactory } from 'src/actions'
+
 import * as Reducer from 'src/reactUtility/reducer'
 import * as View from 'src/view'
 
-export const reducer: Reducer.T<View.T, AppState.ActionTypes> = (s: View.T, a: AppState.ActionTypes) => {
+export const reducer: Reducer.T<View.T, ActionTypes> = (s: View.T, a: ActionTypes) => {
     switch (a.type) {
-        case "view/setImportant": return { ...s, important: a.payload };
-        case "view/setStatus": return { ...s, status: a.payload };
+        case "view_setImportantFilter": return { ...s, important: a.payload };
+        case "view_setStatusFilter": return { ...s, status: a.payload };
         default: return s;
     }
 }

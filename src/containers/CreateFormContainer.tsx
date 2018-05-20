@@ -1,9 +1,10 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
 import { map } from 'rxjs/operators';
+import { ActionTypes, factory as actionFactory } from 'src/actions'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import { T as CreateForm } from 'src/createForm'
-import * as CreateFormActions from 'src/createForm.actions'
+
 import * as Store from 'src/store'
 
 interface Props {
@@ -18,12 +19,12 @@ export class T extends ObservableStateComponent<Props, CreateForm> {
     }
 
     public handleSubmit(e: React.FormEvent<HTMLFormElement>): void {
-        this.props.store.dispatch(CreateFormActions.factories.submit());
+        this.props.store.dispatch(actionFactory.createForm_submit());
         e.preventDefault();
     }
 
     public handleTextChange(e: React.FormEvent<HTMLInputElement>): void {
-        this.props.store.dispatch(CreateFormActions.factories.updateText(e.currentTarget.value));
+        this.props.store.dispatch(actionFactory.createForm_updateText(e.currentTarget.value));
     }
 
     public renderCore(): JSX.Element {

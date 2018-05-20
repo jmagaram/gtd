@@ -1,6 +1,7 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
 import { distinctUntilChanged, map } from 'rxjs/operators';
+import { ActionTypes, factory as actionFactory } from 'src/actions'
 import * as ImportantFilter from 'src/components/ImportantFilter'
 import * as StatusFilter from 'src/components/StatusFilter'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
@@ -8,7 +9,6 @@ import * as Important from 'src/importantFilter'
 import * as Status from 'src/statusFilter'
 import * as Store from 'src/store'
 import { T as View } from 'src/view'
-import * as ViewActions from 'src/view.actions'
 
 interface Props {
     store: Store.T
@@ -29,12 +29,12 @@ export class T extends ObservableStateComponent<Props, View> {
     }
 
     protected SetImportance(i: Important.T) {
-        const action = ViewActions.factories.setImportantFilter(i);
+        const action = actionFactory.view_setImportantFilter(i);
         this.props.store.dispatch(action);
     }
 
     protected SetStatus(i: Status.T) {
-        const action = ViewActions.factories.setStatusFilter(i);
+        const action = actionFactory.view_setStatusFilter(i);
         this.props.store.dispatch(action);
     }
 
