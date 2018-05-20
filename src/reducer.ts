@@ -1,1 +1,0 @@
-export type T<TState, TAction> = (previousState: TState, action: TAction) => TState;

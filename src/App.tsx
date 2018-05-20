@@ -1,15 +1,14 @@
 import * as React from 'react';
-import * as ActionItemList from 'src/containers/ActionItemListContainer'
-import * as CreateForm from 'src/containers/CreateFormContainer'
-import * as View from 'src/containers/View'
-import * as Store from 'src/store'
 import './App.css';
-
+import { T as CreateForm } from './containers//CreateFormContainer'
+import { T as ActionItemList } from './containers/ActionItemListContainer'
+import { T as View } from './containers/View'
 import logo from './logo.svg';
-
-const store = Store.createDefault();
+import * as Store from './store'
 
 class App extends React.Component {
+  private store = Store.createDefault();
+
   public render() {
     return (
       <div className="App">
@@ -17,9 +16,9 @@ class App extends React.Component {
           <img src={logo} className="App-logo" alt="logo" />
           <h1 className="App-title">To Do List</h1>
         </header>
-        <CreateForm.T store={store} />
-        <View.T store={store} />
-        <ActionItemList.T store={store} />
+        <CreateForm store={this.store} />
+        <View store={this.store} />
+        <ActionItemList store={this.store} />
       </div>
     );
   }

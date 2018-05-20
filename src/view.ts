@@ -1,7 +1,5 @@
+import { ActionTypes } from 'src/actions'
 import * as ImportantFilter from 'src/importantFilter'
-import * as Action from 'src/reactUtility/action';
-import * as ActionsUnion from 'src/reactUtility/actionUnion';
-import * as Reducer from 'src/reducer';
 import * as StatusFilter from 'src/statusFilter'
 
 export interface T {
@@ -14,4 +12,12 @@ export function createDefault(): T {
         important: "Both",
         status: "Incomplete"
     };
+}
+
+export const reducer = (s: T, a: ActionTypes): T => {
+    switch (a.type) {
+        case "view_setImportantFilter": return { ...s, important: a.payload };
+        case "view_setStatusFilter": return { ...s, status: a.payload };
+        default: return s;
+    }
 }

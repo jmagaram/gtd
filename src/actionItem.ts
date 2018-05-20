@@ -1,4 +1,4 @@
-import * as Reducer from 'src/reducer';
+import { ActionTypes } from 'src/actions'
 import * as UniqueId from 'src/uniqueId';
 
 export interface T {
@@ -8,11 +8,19 @@ export interface T {
     readonly isComplete: boolean;
 }
 
-export function create(title: string, isImportant: boolean, isComplete: boolean): T {
+export function createActionItem(title: string, isImportant: boolean, isComplete: boolean): T {
     return {
         isComplete,
         isImportant,
         title,
         uniqueId: UniqueId.create()
     };
+}
+
+export const reducer = (i: T, action: ActionTypes): T => {
+    switch (action.type) {
+        case "actionItem_toggleComplete": return { ...i, isComplete: !i.isComplete };
+        case "actionItem_toggleImportant": return { ...i, isImportant: !i.isImportant };
+        default: return i;
+    }
 }

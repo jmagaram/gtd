@@ -1,4 +1,5 @@
 import * as ActionItemMap from 'src/actionItemMap';
+import { ActionTypes } from 'src/actions'
 import * as CreateForm from 'src/createForm';
 import * as View from 'src/view'
 
@@ -13,5 +14,13 @@ export function createDefault(): T {
         view: View.createDefault(),
         actionItems: ActionItemMap.createSampleData(),
         createForm: CreateForm.createDefault()
+    };
+}
+
+export const reducer = (s: T, a: ActionTypes) => {
+    return {
+        actionItems: ActionItemMap.reducer(s.actionItems, s.createForm, a),
+        view: View.reducer(s.view, a),
+        createForm: CreateForm.reducer(s.createForm, a)
     };
 }
