@@ -40,26 +40,5 @@ export class T extends ObservableStateComponent<Props, ActionItemProperties> {
             map(i => i.actionItems.get(this.props.uniqueId)),
             distinctUntilChanged(),
             map(i => (i === undefined) ? undefined : this.createProperties(i)));
-        // const p = props.store.state$.pipe(
-        //     map(i => {
-        //         const id = i.actionItems.get(this.props.uniqueId);
-        //         if (id === undefined) {
-        //             return undefined;
-        //         }
-        //         else {
-        //             const source = id!;
-        //             const result: ActionItemProperties = {
-        //                 isComplete: source.isComplete,
-        //                 isImportant: source.isImportant,
-        //                 title: source.title,
-        //                 key: source.uniqueId,
-        //                 onDelete: () => this.props.store.dispatch(actionFactory.actionItem_purge(source.uniqueId)),
-        //                 onToggleComplete: () => this.props.store.dispatch(actionFactory.actionItem_toggleComplete(source.uniqueId)),
-        //                 onToggleImportant: () => this.props.store.dispatch(actionFactory.actionItem_toggleImportant(source.uniqueId))
-        //             };
-        //             return result; // need distinct on changed I think otherwise state always updated
-        //         }
-        //     }));
-        // return p;
     }
 }
