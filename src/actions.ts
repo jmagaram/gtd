@@ -1,6 +1,5 @@
 import { T as ImportantFilter } from 'src/importantFilter'
-import { createAction } from 'src/reactUtility/action'
-import { T as ActionUnion } from 'src/reactUtility/actionUnion'
+import { ActionTypeUnion, createAction } from 'src/reactUtility/action'
 import { T as StatusFilter } from 'src/statusFilter'
 import { T as UniqueId } from 'src/uniqueId'
 
@@ -19,4 +18,4 @@ export const factory = {
     view_setStatusFilter: (filter: StatusFilter) => createAction("view_setStatusFilter", filter)
 }
 
-export type ActionTypes = ActionUnion<typeof factory>;
+export type ActionTypes = ActionTypeUnion<typeof factory>;
