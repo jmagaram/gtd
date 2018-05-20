@@ -1,14 +1,17 @@
 import * as ActionItemMap from 'src/actionItemMap';
+import * as CreateForm from 'src/createForm';
 import * as View from 'src/view'
 
 export interface T {
     readonly view: View.T;
     readonly actionItems: ActionItemMap.T;
+    readonly createForm: CreateForm.T;
 }
 
 export function createDefault(): T {
     return {
         view: View.createDefault(),
-        actionItems: ActionItemMap.createSampleData()
+        actionItems: ActionItemMap.createSampleData(),
+        createForm: CreateForm.createDefault()
     };
 }
