@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
-import { map } from 'rxjs/operators';
+import { distinctUntilChanged, map } from 'rxjs/operators';
 import { ActionTypes, factory as actionFactory } from 'src/actions'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import { T as CreateForm } from 'src/state/createForm'
@@ -40,8 +40,9 @@ export class T extends ObservableStateComponent<Props, CreateForm> {
     }
 
     protected stateFactory(props: { store: Store.T; }): Rx.Observable<CreateForm> {
-        const p = props.store.state$.pipe(
-            map(i => i.createForm));
-        return p;
+        return props.store.state$.pipe(
+            map(i => i.createForm),
+            distinctUntilChanged()
+        );
     }
 }
