@@ -1,6 +1,6 @@
 import { ActionTypes } from 'src/actions'
-import * as ImportantFilter from 'src/importantFilter'
-import * as StatusFilter from 'src/statusFilter'
+import * as ImportantFilter from 'src/state/importantFilter'
+import * as StatusFilter from 'src/state/statusFilter'
 
 export interface T {
     readonly important: ImportantFilter.T;

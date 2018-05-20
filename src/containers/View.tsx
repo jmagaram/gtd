@@ -5,10 +5,10 @@ import { ActionTypes, factory as actionFactory } from 'src/actions'
 import * as ImportantFilter from 'src/components/ImportantFilter'
 import * as StatusFilter from 'src/components/StatusFilter'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
-import * as Important from 'src/importantFilter'
-import * as Status from 'src/statusFilter'
+import * as Important from 'src/state/importantFilter'
+import * as Status from 'src/state/statusFilter'
+import { T as View } from 'src/state/view'
 import * as Store from 'src/store'
-import { T as View } from 'src/view'
 
 interface Props {
     store: Store.T

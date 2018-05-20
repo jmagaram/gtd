@@ -1,8 +1,8 @@
-import { createActionItem, reducer as actionItemReducer, T as ActionItem } from 'src/actionItem';
 import { ActionTypes } from 'src/actions'
-import * as CreateForm from 'src/createForm'
 import * as Seq from 'src/seq/index';
-import { T as UniqueId } from 'src/uniqueId';
+import { createActionItem, reducer as actionItemReducer, T as ActionItem } from 'src/state/actionItem';
+import * as CreateForm from 'src/state/createForm'
+import { T as UniqueId } from 'src/state/uniqueId';
 
 export type T = ReadonlyMap<UniqueId, ActionItem>;
 

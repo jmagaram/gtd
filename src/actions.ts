@@ -1,7 +1,7 @@
-import { T as ImportantFilter } from 'src/importantFilter'
 import { ActionTypeUnion, createAction } from 'src/reactUtility/action'
-import { T as StatusFilter } from 'src/statusFilter'
-import { T as UniqueId } from 'src/uniqueId'
+import { T as ImportantFilter } from 'src/state/importantFilter'
+import { T as StatusFilter } from 'src/state/statusFilter'
+import { T as UniqueId } from 'src/state/uniqueId'
 
 export const factory = {
     actionItem_toggleImportant: (id: UniqueId) => createAction("actionItem_toggleImportant", { id }),

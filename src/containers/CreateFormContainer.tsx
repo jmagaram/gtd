@@ -3,7 +3,7 @@ import * as Rx from 'rxjs'
 import { map } from 'rxjs/operators';
 import { ActionTypes, factory as actionFactory } from 'src/actions'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
-import { T as CreateForm } from 'src/createForm'
+import { T as CreateForm } from 'src/state/createForm'
 
 import * as Store from 'src/store'
 

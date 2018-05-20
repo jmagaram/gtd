@@ -1,13 +1,13 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
 import { map } from 'rxjs/operators';
-import * as ActionItem from 'src/actionItem'
-import { T as AppState } from 'src/appState'
 import { T as ActionItemContainer } from 'src/containers/ActionItemContainer'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
 import * as Seq from 'src/seq/index'
+import * as ActionItem from 'src/state/actionItem'
+import { T as AppState } from 'src/state/appState'
+import { T as UniqueId } from 'src/state/uniqueId'
 import * as Store from 'src/store'
-import { T as UniqueId } from 'src/uniqueId'
 import { pipe } from 'src/utility/pipe'
 
 interface Props {

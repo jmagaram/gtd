@@ -1,6 +1,6 @@
 import * as React from 'react'
 import * as Seq from 'src/seq'
-import { T as Status } from 'src/statusFilter'
+import { T as Status } from 'src/state/statusFilter'
 import { pipe } from 'src/utility/pipe'
 
 export interface Properties {

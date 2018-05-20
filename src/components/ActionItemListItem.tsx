@@ -1,6 +1,6 @@
 import * as React from 'react'
-import { T as Importance } from 'src/importantFilter'
 import * as Seq from 'src/seq'
+import { T as Importance } from 'src/state/importantFilter'
 import { pipe } from 'src/utility/pipe'
 
 export interface Properties {

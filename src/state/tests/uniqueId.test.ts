@@ -1,7 +1,7 @@
-import * as Seq from '../seq/index';
-import { map } from '../seq/index';
+import * as Seq from 'src/seq/index';
+import { map } from 'src/seq/index';
+import { pipe } from 'src/utility/pipe';
 import * as UniqueId from '../uniqueId';
-import { pipe } from '../utility/pipe';
 
 test("when create 1000, each instance is unique", () =>
     expect(pipe(

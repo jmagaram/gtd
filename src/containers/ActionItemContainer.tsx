@@ -1,13 +1,13 @@
 import * as React from 'react';
 import * as Rx from 'rxjs'
 import { distinctUntilChanged, filter as rxFilter, map } from 'rxjs/operators';
-import * as ActionItem from 'src/actionItem'
 import { factory as actionFactory } from 'src/actions'
 import { T as ActionItemListItem } from 'src/components/ActionItemListItem'
 import { Properties as ActionItemProperties } from 'src/components/ActionItemListItem'
 import { T as ObservableStateComponent } from 'src/containers/ObservableStateContainer'
+import * as ActionItem from 'src/state/actionItem'
+import { T as UniqueId } from 'src/state/uniqueId'
 import * as Store from 'src/store'
-import { T as UniqueId } from 'src/uniqueId'
 
 interface Props {
     uniqueId: UniqueId;

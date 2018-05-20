@@ -1,7 +1,7 @@
-import * as ActionItemMap from 'src/actionItemMap';
 import { ActionTypes } from 'src/actions'
-import * as CreateForm from 'src/createForm';
-import * as View from 'src/view'
+import * as ActionItemMap from 'src/state/actionItemMap';
+import * as CreateForm from 'src/state/createForm';
+import * as View from 'src/state/view'
 
 export interface T {
     readonly view: View.T;

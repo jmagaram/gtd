@@ -1,5 +1,5 @@
 import { ActionTypes } from 'src/actions'
-import * as UniqueId from 'src/uniqueId';
+import * as UniqueId from 'src/state/uniqueId';
 
 export interface T {
     readonly uniqueId: UniqueId.T;
