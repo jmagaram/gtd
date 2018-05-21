@@ -34,7 +34,7 @@ export class T extends ObservableStateComponent<Props, State> {
         const isStatusMatch = (item: ActionItem.T) => store.view.status === "Both" || (store.view.status === "Complete" && item.isComplete) || (store.view.status === "Incomplete" && !item.isComplete);
         const items = pipe(
             () => store.actionItems.values(),
-            i => Seq.choose<ActionItem.T, UniqueId>(i, j => (isImportantMatch(j) && isStatusMatch(j)) ? j.uniqueId : undefined),
+            Seq.choose_<ActionItem.T, UniqueId>(j => (isImportantMatch(j) && isStatusMatch(j)) ? j.uniqueId : undefined),
             i => Array.from(i));
         return items();
     }

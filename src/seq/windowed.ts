@@ -15,3 +15,6 @@ export function windowed<T>(source: Iterable<T>, size: number): Iterable<Readonl
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const windowed_ = <T>(size: number) => (source: Iterable<T>) => windowed(source, size);

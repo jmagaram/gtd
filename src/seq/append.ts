@@ -7,3 +7,6 @@ export function append<T>(source1: Iterable<T>, source2: Iterable<T>) {
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const append_ = <T>(source2: Iterable<T>) => (source1: Iterable<T>) => append(source1, source2);

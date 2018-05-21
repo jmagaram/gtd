@@ -17,3 +17,6 @@ export function skip<T>(source: Iterable<T>, count: number) {
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const skip_ = <T>(count: number) => (source: Iterable<T>) => skip(source, count);

@@ -10,3 +10,6 @@ export function collect<T, U>(source: Iterable<T>, selector: (item: T) => Iterab
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const collect_ = <T, U>(selector: (item: T) => Iterable<U>) => (source: Iterable<T>) => collect(source, selector);

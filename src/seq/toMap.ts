@@ -17,3 +17,7 @@ export function toMap<T, TKey, TValue>(
     }
     return result;
 }
+
+// tslint:disable-next-line:variable-name
+export const toMap_ = <T, TKey, TValue>(keySelector: (t: T) => TKey, valueSelector: (t: T) => TValue) =>
+    (source: Iterable<T>) => toMap(source, keySelector, valueSelector);

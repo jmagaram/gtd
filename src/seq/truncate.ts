@@ -15,3 +15,6 @@ export function truncate<T>(source: Iterable<T>, maxCount: number) {
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const truncate_ = <T>(maxCount: number) => (source: Iterable<T>) => truncate(source, maxCount);

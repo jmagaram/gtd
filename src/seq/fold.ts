@@ -6,3 +6,5 @@ export function fold<T, TSum>(source: Iterable<T>, seed: TSum, accumulator: (sum
     return total;
 }
 
+// tslint:disable-next-line:variable-name
+export const fold_ = <T, TSum>(seed: TSum, accumulator: (sum: TSum, item: T) => TSum) => (source: Iterable<T>) => fold(source, seed, accumulator);

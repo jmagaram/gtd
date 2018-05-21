@@ -61,3 +61,15 @@ function zip4Internal<T1, T2, T3, T4>(
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const zip2_ = <T1, T2>(s2: Iterable<NonNullable<T2>>) =>
+    (s1: Iterable<NonNullable<T1>>) => zip2(s1, s2);
+
+// tslint:disable-next-line:variable-name
+export const zip3_ = <T1, T2, T3>(s2: Iterable<NonNullable<T2>>, s3: Iterable<NonNullable<T2>>) =>
+    (s1: Iterable<NonNullable<T1>>) => zip3(s1, s2, s3);
+
+// tslint:disable-next-line:variable-name
+export const zip4_ = <T1, T2, T3, T4>(s2: Iterable<NonNullable<T2>>, s3: Iterable<NonNullable<T2>>, s4: Iterable<NonNullable<T2>>) =>
+    (s1: Iterable<NonNullable<T1>>) => zip4(s1, s2, s3, s4);

@@ -6,3 +6,6 @@ export function all<T>(source: Iterable<T>, predicate: (item: T) => boolean) {
     }
     return true;
 }
+
+// tslint:disable-next-line:variable-name
+export const all_ = <T>(predicate: (item: T) => boolean) => (source: Iterable<T>) => all(source, predicate);

@@ -10,3 +10,6 @@ export function minBy<T, U>(source: Iterable<T>, selector: (t: T) => U): T | und
     }
     return min;
 }
+
+// tslint:disable-next-line:variable-name
+export const minBy_ = <T, U>(selector: (t: T) => U) => (source: Iterable<T>) => minBy(source, selector);

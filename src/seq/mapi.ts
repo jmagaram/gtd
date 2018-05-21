@@ -11,3 +11,6 @@ export function mapi<T, U>(source: Iterable<T>, selector: (index: ZeroBasedIndex
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const mapi_ = <T, U>(selector: (index: ZeroBasedIndex, item: T) => U) => (source: Iterable<T>) => mapi(source, selector);

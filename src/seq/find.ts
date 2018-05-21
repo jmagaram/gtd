@@ -6,3 +6,6 @@ export function find<T>(source: Iterable<T>, predicate: (item: T) => boolean): T
     }
     return undefined;
 }
+
+// tslint:disable-next-line:variable-name
+export const find_ = <T>(predicate: (item: T) => boolean) => (source: Iterable<T>) => find(source, predicate);

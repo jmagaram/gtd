@@ -10,3 +10,6 @@ export function maxBy<T, U>(source: Iterable<T>, selector: (t: T) => U): T | und
     }
     return max;
 }
+
+// tslint:disable-next-line:variable-name
+export const maxBy_ = <T, U>(selector: (t: T) => U) => (source: Iterable<T>) => maxBy(source, selector);

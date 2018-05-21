@@ -21,3 +21,7 @@ export function take<T>(source: Iterable<T>, count: number) {
     }
     return fromGenerator(items);
 }
+
+
+// tslint:disable-next-line:variable-name
+export const take_ = <T>(count: number) => (source: Iterable<T>) => take(source, count);

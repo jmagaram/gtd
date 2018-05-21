@@ -11,3 +11,5 @@ export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T)
     return total;
 }
 
+// tslint:disable-next-line:variable-name
+export const reduce_ = <T>(accumulator: (t1: T, t2: T) => T) => (source: Iterable<T>) => reduce(source, accumulator);

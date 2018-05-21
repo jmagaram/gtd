@@ -14,3 +14,6 @@ export function skipWhile<T>(source: Iterable<T>, predicate: (t: T) => boolean) 
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const skipWhile_ = <T>(predicate: (item: T) => boolean) => (source: Iterable<T>) => skipWhile(source, predicate);

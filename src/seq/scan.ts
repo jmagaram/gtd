@@ -11,3 +11,6 @@ export function scan<T, TSum>(source: Iterable<T>, seed: TSum, accumulator: (sum
     }
     return fromGenerator(items);
 }
+
+// tslint:disable-next-line:variable-name
+export const scan_ = <T, TSum>(seed: TSum, accumulator: (sum: TSum, item: T) => TSum) => (source: Iterable<T>) => scan(source, seed, accumulator);

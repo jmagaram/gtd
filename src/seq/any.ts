@@ -6,3 +6,6 @@ export function any<T>(source: Iterable<T>, predicate?: (item: T) => boolean) {
     }
     return false;
 }
+
+// tslint:disable-next-line:variable-name
+export const any_ = <T>(predicate: (item: T) => boolean) => (source: Iterable<T>) => any(source, predicate);
