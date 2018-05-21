@@ -2,7 +2,6 @@ import { ActionTypes } from 'src/actions'
 import * as Seq from 'src/seq/index';
 import { createActionItem, reducer as actionItemReducer, T as ActionItem } from 'src/state/actionItem';
 import * as CreateForm from 'src/state/createForm'
-import { T as UniqueId } from 'src/state/uniqueId';
 
 export type T = ReadonlyArray<ActionItem>;
 
