@@ -10,7 +10,7 @@ export interface T {
 export function createDefault(): T {
     return {
         important: "Both",
-        status: "Incomplete"
+        status: "Both"
     };
 }
 
