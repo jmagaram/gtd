@@ -3,7 +3,7 @@ import { Observable, Subscription } from "rxjs";
 
 export abstract class T<TProps, TState> extends React.Component<TProps, TState> {
     private subscription: Subscription;
-    private state$: Observable<TState | undefined>;
+    private state$: Observable<TState>;
 
     constructor(props: TProps) {
         super(props);
@@ -28,11 +28,7 @@ export abstract class T<TProps, TState> extends React.Component<TProps, TState> 
         }
         this.subscription = this
             .state$
-            .subscribe(s => {
-                if (s !== undefined) {
-                    this.setState(s);
-                }
-            })
+            .subscribe(s => this.setState(s))
     }
 
     public componentWillUnmount() {
@@ -41,5 +37,5 @@ export abstract class T<TProps, TState> extends React.Component<TProps, TState> 
         }
     }
 
-    protected abstract stateFactory(props: TProps): Observable<TState | undefined>;
+    protected abstract stateFactory(props: TProps): Observable<TState>;
 }
