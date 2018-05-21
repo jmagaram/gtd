@@ -7,8 +7,6 @@ export const factory = {
     actionItem_toggleImportant: (id: UniqueId) => createAction("actionItem_toggleImportant", { id }),
     actionItem_toggleComplete: (id: UniqueId) => createAction("actionItem_toggleComplete", { id }),
     actionItem_purge: (id: UniqueId) => createAction("actionItem_purge", id),
-    actionItem_create: (title: string, isImportant: boolean, isComplete: boolean) =>
-        createAction("actionItem_create", { title, isImportant, isComplete }),
 
     createForm_cancel: () => createAction("createForm_cancel"),
     createForm_submit: () => createAction("createForm_submit"),

@@ -19,11 +19,6 @@ function* sampleActionsGenerator() {
 
 export const reducer = (s: T, form: CreateForm.T, a: ActionTypes): T => {
     switch (a.type) {
-        case "actionItem_create": {
-            const c = createActionItem(a.payload.title, a.payload.isImportant, a.payload.isComplete);
-            const cKeyValue: [UniqueId, ActionItem] = [c.uniqueId, c];
-            return new Map(Seq.append(s, [cKeyValue]));
-        }
         case "createForm_submit": {
             const c = createActionItem(form.text, false, false);
             const cKeyValue: [UniqueId, ActionItem] = [c.uniqueId, c];
