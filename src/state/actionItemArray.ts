@@ -17,10 +17,11 @@ function* sampleActionsGenerator() {
 }
 
 export const reducer = (s: T, form: CreateForm.T, a: ActionTypes): T => {
-    const children = s.map(i => actionItemReducer(i, a));
-    const collection =
-        (a.type === "createForm_submit") ? children.concat([createActionItem(form.text, false, false)]) :
-            (a.type === "actionItem_purge") ? children.filter(i => i.uniqueId !== a.payload) :
-                children;
-    return collection; // should only return this if different contents than s
+    const updatedChildren = s.map(i => actionItemReducer(i, a));
+    const updatedArray =
+        (a.type === "createForm_submit") ? updatedChildren.concat([createActionItem(form.text, false, false)]) :
+            (a.type === "actionItem_purge") ? updatedChildren.filter(i => i.uniqueId !== a.payload) :
+                updatedChildren;
+    const isArraySame = Seq.sequenceEqual(s, updatedArray);
+    return isArraySame ? s : updatedArray;
 }
