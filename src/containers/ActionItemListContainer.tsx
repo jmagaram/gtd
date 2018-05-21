@@ -29,6 +29,13 @@ export class T extends ObservableStateComponent<Props, State> {
         </ul>;
     }
 
+    protected stateFactory(props: { store: Store.T; }): Rx.Observable<State> {
+        return props.store.state$.pipe(
+            map(i => this.visibleItems(i)),
+            distinctUntilChanged((x, y) => Seq.all(Seq.zip2<UniqueId, UniqueId>(x, y), j => j[0] === j[1])),
+            map(i => ({ items: i })));
+    }
+
     private visibleItems(store: AppState): UniqueId[] {
         const isImportantMatch = (item: ActionItem.T) => store.view.important === "Both" || (store.view.important === "Important" && item.isImportant) || (store.view.important === "NotImportant" && !item.isImportant);
         const isStatusMatch = (item: ActionItem.T) => store.view.status === "Both" || (store.view.status === "Complete" && item.isComplete) || (store.view.status === "Incomplete" && !item.isComplete);
@@ -37,12 +44,5 @@ export class T extends ObservableStateComponent<Props, State> {
             Seq.choose_<ActionItem.T, UniqueId>(j => (isImportantMatch(j) && isStatusMatch(j)) ? j.uniqueId : undefined),
             i => Array.from(i));
         return items();
-    }
-
-    protected stateFactory(props: { store: Store.T; }): Rx.Observable<State> {
-        return props.store.state$.pipe(
-            map(i => this.visibleItems(i)),
-            distinctUntilChanged((x, y) => Seq.all(Seq.zip2<UniqueId, UniqueId>(x, y), j => j[0] === j[1])),
-            map(i => ({ items: i })));
     }
 }

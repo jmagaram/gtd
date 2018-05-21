@@ -20,7 +20,11 @@
       "severity": "warning"
     },
     "member-ordering": {
-      "severity": "warning"
+      "severity": "warning",
+      "options": {
+        "order": "fields-first",
+        "alphabetize": false
+      }
     }
   }
 }
