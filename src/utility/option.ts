@@ -10,41 +10,35 @@ export function some<V>(value: NonNullable<V>): T<V> {
 
 export const none = undefined;
 
-export function create<V>(value: V): T<V> {
-    return (value == null || value === undefined) ? undefined : value!;
-}
+export const create = <V>(value: V): T<V> =>
+    (value == null || value === undefined) ? undefined : value!;
 
-export function reduce<V>(source: T<V>, ifUndefined: V): V {
-    return (source == null || source === undefined) ? ifUndefined : source;
-}
+export const reduce = <V>(source: V, ifUndefined: NonNullable<V>): T<V> =>
+    (source == null || source === undefined) ? ifUndefined : source!;
 
-export function reduceLazy<V>(source: T<V>, ifUndefined: () => V): V {
-    return (source == null || source === undefined) ? ifUndefined() : source;
-}
+export const reduceLazy = <V>(source: V, ifUndefined: () => NonNullable<V>): T<V> =>
+    (source == null || source === undefined) ? ifUndefined() : source!;
 
-export function reduceOrThrow<V>(source: T<V>): V {
+export const reduceOrThrow = <V>(source: V): T<V> => {
     switch (source) {
         case null: throw new Error("Can't reduce 'null'.");
         case undefined: throw new Error("Can't reduce 'undefined'.");
-        default: return source;
+        default: return source!;
     }
 }
 
-export function map<V, R>(source: T<V>, selector: (value: V) => NonNullable<R>): T<R> {
-    return (source == null || source === undefined) ? undefined : selector(source);
-}
+export const map = <V, R>(source: V, selector: (v: NonNullable<V>) => NonNullable<R>): T<R> =>
+    (source == null || source === undefined) ? undefined : selector(source!);
 
-export function mapOption<V, R>(source: T<V>, selector: (value: V) => T<R>): T<R> {
-    return (source == null || source === undefined) ? undefined : selector(source);
-}
+export const mapOption = <V, R>(source: V, selector: (v: NonNullable<V>) => T<R>): T<R> =>
+    (source == null || source === undefined) ? undefined : selector(source!);
 
-export function filter<Value>(source: T<Value>, predicate: (v: Value) => boolean): T<Value> {
-    return (source === undefined) ? undefined : predicate(source) ? source : undefined;
-}
+export const filter = <V>(source: V, predicate: (v: NonNullable<V>) => boolean): T<V> =>
+    (source == null || source === undefined) ? undefined : predicate(source!) ? source! : undefined;
 
 // tslint:disable:variable-name
-export const filter_ = <V>(predicate: (v: V) => boolean) => (source: T<V>) => ((source === undefined) ? undefined : predicate(source) ? source : undefined);
-export const mapOption_ = <V, R>(selector: (value: V) => T<R>) => (source: T<V>) => (source == null || source === undefined) ? undefined : selector(source);
-export const map_ = <V, R>(selector: (value: V) => NonNullable<R>) => (source: T<V>) => (source == null || source === undefined) ? undefined : selector(source);
-export const reduceLazy_ = <V>(ifUndefined: () => V) => (source: T<V>) => (source == null || source === undefined) ? ifUndefined() : source;
-export const reduce_ = <V>(ifUndefined: V) => (source: T<V>) => (source == null || source === undefined) ? ifUndefined : source;
+export const reduce_ = <V>(ifUndefined: NonNullable<V>) => (source: V): T<V> => reduce(source, ifUndefined);
+export const reduceLazy_ = <V>(ifUndefined: () => NonNullable<V>) => (source: V): T<V> => reduceLazy(source, ifUndefined)
+export const map_ = <V, R>(selector: (v: NonNullable<V>) => NonNullable<R>) => (source: V): T<R> => map(source, selector);
+export const mapOption_ = <V, R>(selector: (v: NonNullable<V>) => T<R>) => (source: V): T<R> => mapOption(source, selector);
+export const filter_ = <V>(predicate: (v: NonNullable<V>) => boolean) => (source: V): T<V> => filter(source, predicate);
