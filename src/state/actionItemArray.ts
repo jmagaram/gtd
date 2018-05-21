@@ -17,14 +17,10 @@ function* sampleActionsGenerator() {
 }
 
 export const reducer = (s: T, form: CreateForm.T, a: ActionTypes): T => {
-    switch (a.type) {
-        case "createForm_submit": {
-            const c = createActionItem(form.text, false, false);
-            return s.concat([c]);
-        }
-        case "actionItem_purge": return s.filter(i => i.uniqueId !== a.payload);
-        case "actionItem_toggleComplete":
-        case "actionItem_toggleImportant": return s.map(i => actionItemReducer(i, a));
-        default: return s;
-    }
+    const children = s.map(i => actionItemReducer(i, a));
+    const collection =
+        (a.type === "createForm_submit") ? children.concat([createActionItem(form.text, false, false)]) :
+            (a.type === "actionItem_purge") ? children.filter(i => i.uniqueId !== a.payload) :
+                children;
+    return collection; // should only return this if different contents than s
 }
