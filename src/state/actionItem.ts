@@ -19,8 +19,8 @@ export function createActionItem(title: string, isImportant: boolean, isComplete
 
 export const reducer = (i: T, action: ActionTypes): T => {
     switch (action.type) {
-        case "actionItem_toggleComplete": return { ...i, isComplete: !i.isComplete };
-        case "actionItem_toggleImportant": return { ...i, isImportant: !i.isImportant };
+        case "actionItem_toggleComplete": return action.payload.id === i.uniqueId ? { ...i, isComplete: !i.isComplete } : i;
+        case "actionItem_toggleImportant": return action.payload.id === i.uniqueId ? { ...i, isImportant: !i.isImportant } : i;
         default: return i;
     }
 }
