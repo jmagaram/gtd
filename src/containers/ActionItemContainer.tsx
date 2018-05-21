@@ -37,7 +37,7 @@ export class T extends ObservableStateComponent<Props, ActionItemProperties> {
 
     protected stateFactory(props: { store: Store.T; }): Rx.Observable<ActionItemProperties> {
         return props.store.state$.pipe(
-            map(i => i.actionItems.get(this.props.uniqueId)),
+            map(i => i.actionItems.find(j => j.uniqueId === this.props.uniqueId)),
             rxFilter(i => i !== undefined),
             distinctUntilChanged(),
             map(i => this.createProperties(i!)));
