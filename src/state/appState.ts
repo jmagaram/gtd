@@ -18,9 +18,11 @@ export function createDefault(): T {
 }
 
 export const reducer = (s: T, a: ActionTypes) => {
-    return {
+    const updatedState = {
         actionItems: ActionItemArray.reducer(s.actionItems, s.createForm, a),
         view: View.reducer(s.view, a),
         createForm: CreateForm.reducer(s.createForm, a)
     };
+    const isSame = Object.keys(updatedState).every(i => updatedState[i] === s[i]);
+    return isSame ? s : updatedState;
 }
