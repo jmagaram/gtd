@@ -29,7 +29,9 @@ export class T extends ObservableStateComponent<Props, ActionItemProperties> {
             isImportant: source.isImportant,
             title: source.title,
             key: source.uniqueId,
-            onDelete: () => this.props.store.dispatch(actionFactory.actionItem_purge(source.uniqueId)),
+            purgePercentComplete: source.purgePercentComplete,
+            onDelete: source.purgePercentComplete === undefined ? () => this.props.store.dispatch(actionFactory.actionItem_startPurge(source.uniqueId)) : undefined,
+            onCancelDelete: source.purgePercentComplete !== undefined ? () => this.props.store.dispatch(actionFactory.actionItem_cancelPurge(source.uniqueId)) : undefined,
             onToggleComplete: () => this.props.store.dispatch(actionFactory.actionItem_toggleComplete(source.uniqueId)),
             onToggleImportant: () => this.props.store.dispatch(actionFactory.actionItem_toggleImportant(source.uniqueId))
         };

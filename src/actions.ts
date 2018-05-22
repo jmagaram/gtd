@@ -7,6 +7,9 @@ export const factory = {
     actionItem_toggleImportant: (id: UniqueId) => createAction("actionItem_toggleImportant", { id }),
     actionItem_toggleComplete: (id: UniqueId) => createAction("actionItem_toggleComplete", { id }),
     actionItem_purge: (id: UniqueId) => createAction("actionItem_purge", id),
+    actionItem_startPurge: (id: UniqueId) => createAction("actionItem_startPurge", { id }),
+    actionItem_updatePurgeCountdown: (id: UniqueId, percentComplete: number) => createAction("actionItem_updatePurgeCountdown", { id, percentComplete }),
+    actionItem_cancelPurge: (id: UniqueId) => createAction("actionItem_cancelPurge", { id }),
 
     createForm_cancel: () => createAction("createForm_cancel"),
     createForm_submit: () => createAction("createForm_submit"),
