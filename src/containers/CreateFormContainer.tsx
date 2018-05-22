@@ -31,7 +31,6 @@ export class T extends ObservableStateComponent<Props, CreateForm> {
         return (
             <form onSubmit={this.handleSubmit}>
                 <label>
-
                     <input placeholder="new to do" type="text" value={this.state.text} onChange={this.handleTextChange} />
                 </label>
                 <input type="submit" disabled={!this.state.canSubmit} value="Submit" />

@@ -44,8 +44,8 @@ export const T: React.StatelessComponent<Properties> = (p: Properties) => {
     const impStyle = (p.isImportant) ? importantStyle : notImportantStyle;
     const countdownText = pipe(
         () => p.purgePercentComplete,
-        Option.map_(i => `deleting...${i}%; undo`), // Intellisense here is broken. Hmmm?
-        Option.reduce_<string>("") // Why need type annotation here?
+        Option.map_(i => `deleting...${i}%; undo`),
+        Option.reduce_("")
     )();
     const handleOnToggleImportant = (e: React.MouseEvent<HTMLButtonElement>) => p.onToggleImportant();
     const handleOnToggleComplete = (e: React.MouseEvent<HTMLSpanElement>) => p.onToggleComplete();
