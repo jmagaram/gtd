@@ -1,6 +1,7 @@
+import * as Option from '../utility/option'
 import { fromGenerator } from './fromGenerator';
 
-export function pairwise<T>(source: Iterable<T>): Iterable<[T, T]> {
+export function pairwise<T extends Option.Some>(source: Iterable<T>): Iterable<[T, T]> {
     function* items() {
         let first: T | undefined;
         let second: T | undefined;

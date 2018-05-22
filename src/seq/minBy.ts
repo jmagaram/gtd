@@ -1,4 +1,6 @@
-export function minBy<T, U>(source: Iterable<T>, selector: (t: T) => U): T | undefined {
+import * as Option from '../utility/option'
+
+export function minBy<T extends Option.Some, U extends Option.Some>(source: Iterable<T>, selector: (t: T) => U): T | undefined {
     let min: T | undefined;
     let minKey: U | undefined;
     for (const i of source) {
@@ -12,4 +14,4 @@ export function minBy<T, U>(source: Iterable<T>, selector: (t: T) => U): T | und
 }
 
 // tslint:disable-next-line:variable-name
-export const minBy_ = <T, U>(selector: (t: T) => U) => (source: Iterable<T>) => minBy(source, selector);
+export const minBy_ = <T extends Option.Some, U extends Option.Some>(selector: (t: T) => U) => (source: Iterable<T>) => minBy(source, selector);

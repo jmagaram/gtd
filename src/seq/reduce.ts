@@ -1,4 +1,6 @@
-export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T): T | undefined {
+import * as Option from '../utility/option'
+
+export function reduce<T extends Option.Some>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T): T | undefined {
     let total: T | undefined;
     for (const i of source) {
         if (total === undefined) {
@@ -12,4 +14,4 @@ export function reduce<T>(source: Iterable<T>, accumulator: (t1: T, t2: T) => T)
 }
 
 // tslint:disable-next-line:variable-name
-export const reduce_ = <T>(accumulator: (t1: T, t2: T) => T) => (source: Iterable<T>) => reduce(source, accumulator);
+export const reduce_ = <T extends Option.Some>(accumulator: (t1: T, t2: T) => T) => (source: Iterable<T>) => reduce(source, accumulator);

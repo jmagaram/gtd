@@ -1,4 +1,6 @@
-export function toMap<T, TKey, TValue>(
+import * as Option from '../utility/option'
+
+export function toMap<T extends Option.Some, TKey extends Option.Some, TValue>(
     source: Iterable<T>,
     keySelector: (t: T) => TKey,
     valueSelector: (t: T) => TValue): Map<TKey, TValue[]> {
@@ -19,5 +21,5 @@ export function toMap<T, TKey, TValue>(
 }
 
 // tslint:disable-next-line:variable-name
-export const toMap_ = <T, TKey, TValue>(keySelector: (t: T) => TKey, valueSelector: (t: T) => TValue) =>
+export const toMap_ = <T extends Option.Some, TKey extends Option.Some, TValue>(keySelector: (t: T) => TKey, valueSelector: (t: T) => TValue) =>
     (source: Iterable<T>) => toMap(source, keySelector, valueSelector);
