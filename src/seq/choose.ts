@@ -1,6 +1,7 @@
+import { Some } from '../utility/option';
 import { fromGenerator } from './fromGenerator';
 
-export function choose<T, U>(source: Iterable<T>, chooser: (item: T) => U | undefined) {
+export function choose<T, U extends Some>(source: Iterable<T>, chooser: (item: T) => U | undefined) {
     function* items() {
         for (const i of source) {
             const x = chooser(i);
@@ -13,4 +14,4 @@ export function choose<T, U>(source: Iterable<T>, chooser: (item: T) => U | unde
 }
 
 // tslint:disable-next-line:variable-name
-export const choose_ = <T, U>(chooser: (item: T) => U | undefined) => (source: Iterable<T>) => choose(source, chooser);
+export const choose_ = <T, U extends Some>(chooser: (item: T) => U | undefined) => (source: Iterable<T>) => choose(source, chooser);
