@@ -1,4 +1,6 @@
-export function find<T>(source: Iterable<T>, predicate: (item: T) => boolean): T | undefined {
+import * as Option from '../utility/option'
+
+export function find<T extends Option.Some>(source: Iterable<T>, predicate: (item: T) => boolean): T | undefined {
     for (const i of source) {
         if (predicate(i)) {
             return i;
@@ -8,4 +10,4 @@ export function find<T>(source: Iterable<T>, predicate: (item: T) => boolean): T
 }
 
 // tslint:disable-next-line:variable-name
-export const find_ = <T>(predicate: (item: T) => boolean) => (source: Iterable<T>) => find(source, predicate);
+export const find_ = <T extends Option.Some>(predicate: (item: T) => boolean) => (source: Iterable<T>) => find(source, predicate);
