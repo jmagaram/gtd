@@ -37,8 +37,8 @@ export const filter = <V>(source: V, predicate: (v: NonNullable<V>) => boolean):
     (source == null || source === undefined) ? undefined : predicate(source!) ? source! : undefined;
 
 // tslint:disable:variable-name
-export const reduce_ = <V>(ifUndefined: NonNullable<V>) => (source: V): V => reduce(source, ifUndefined);
-export const reduceLazy_ = <V>(ifUndefined: () => NonNullable<V>) => (source: V): V => reduceLazy(source, ifUndefined)
-export const map_ = <V, R>(selector: (v: NonNullable<V>) => NonNullable<R>) => (source: V): T<R> => map(source, selector);
-export const mapOption_ = <V, R>(selector: (v: NonNullable<V>) => T<R>) => (source: V): T<R> => mapOption(source, selector);
-export const filter_ = <V>(predicate: (v: NonNullable<V>) => boolean) => (source: V): T<V> => filter(source, predicate);
+export const reduce_ = <V>(ifUndefined: NonNullable<V>) => (source: V) => reduce(source, ifUndefined);
+export const reduceLazy_ = <V>(ifUndefined: () => NonNullable<V>) => (source: V) => reduceLazy(source, ifUndefined)
+export const map_ = <V, R>(selector: (v: NonNullable<V>) => NonNullable<R>) => (source: V) => map(source, selector);
+export const mapOption_ = <V, R>(selector: (v: NonNullable<V>) => T<R>) => (source: V) => mapOption(source, selector);
+export const filter_ = <V>(predicate: (v: NonNullable<V>) => boolean) => (source: V) => filter(source, predicate);
