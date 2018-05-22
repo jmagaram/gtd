@@ -1,44 +1,33 @@
-export type T<V> = NonNullable<V> | undefined;
+export type Some = string | boolean | number | object;
+export type None = undefined;
+export type Maybe<TValue extends Some> = TValue | None;
+export { Maybe as T }
 
-export function some<V>(value: NonNullable<V>): T<V> {
-    switch (value) {
-        case null: throw new Error("Null is not permitted.");
-        case undefined: throw new Error("Undefined is not permitted.");
-        default: return value;
+export const create = <V extends Some>(value: V | null | undefined) => (value == null) ? undefined : value;
+
+export const reduce = <V extends Some>(source: Maybe<V>, ifUndefined: V): V =>
+    (source === undefined) ? ifUndefined : source;
+
+export const reduceLazy = <V extends Some>(source: Maybe<V>, ifUndefined: () => V): V =>
+    (source === undefined) ? ifUndefined() : source;
+
+export const reduceOrThrow = <V extends Some>(source: Maybe<V>): V => {
+    if (source === undefined) {
+        throw new Error("Can't reduce because the wrapped value is undefined.")
+    }
+    else {
+        return source!;
     }
 }
 
-export const none = undefined;
+export const map = <V extends Some, R extends Some>(source: Maybe<V>, selector: (v: V) => R | undefined) =>
+    (source === undefined) ? undefined : selector(source);
 
-export const create = <V>(value: V): T<V> =>
-    (value == null || value === undefined) ? undefined : value!;
-
-export const reduce = <V>(source: V, ifUndefined: NonNullable<V>): V =>
-    (source == null || source === undefined) ? ifUndefined : source!;
-
-export const reduceLazy = <V>(source: V, ifUndefined: () => NonNullable<V>): V =>
-    (source == null || source === undefined) ? ifUndefined() : source!;
-
-export const reduceOrThrow = <V>(source: V): V => {
-    switch (source) {
-        case null: throw new Error("Can't reduce 'null'.");
-        case undefined: throw new Error("Can't reduce 'undefined'.");
-        default: return source!;
-    }
-}
-
-export const map = <V, R>(source: V, selector: (v: NonNullable<V>) => NonNullable<R>): T<R> =>
-    (source == null || source === undefined) ? undefined : selector(source!);
-
-export const mapOption = <V, R>(source: V, selector: (v: NonNullable<V>) => T<R>): T<R> =>
-    (source == null || source === undefined) ? undefined : selector(source!);
-
-export const filter = <V>(source: V, predicate: (v: NonNullable<V>) => boolean): T<V> =>
-    (source == null || source === undefined) ? undefined : predicate(source!) ? source! : undefined;
+export const filter = <V extends Some>(source: Maybe<V>, predicate: (v: V) => boolean) =>
+    (source === undefined) ? undefined : predicate(source) ? source : undefined;
 
 // tslint:disable:variable-name
-export const reduce_ = <V>(ifUndefined: NonNullable<V>) => (source: V) => reduce(source, ifUndefined);
-export const reduceLazy_ = <V>(ifUndefined: () => NonNullable<V>) => (source: V) => reduceLazy(source, ifUndefined)
-export const map_ = <V, R>(selector: (v: NonNullable<V>) => NonNullable<R>) => (source: V) => map(source, selector);
-export const mapOption_ = <V, R>(selector: (v: NonNullable<V>) => T<R>) => (source: V) => mapOption(source, selector);
-export const filter_ = <V>(predicate: (v: NonNullable<V>) => boolean) => (source: V) => filter(source, predicate);
+export const reduce_ = <V extends Some>(ifUndefined: V) => (source: Maybe<V>) => reduce(source, ifUndefined);
+export const reduceLazy_ = <V extends Some>(ifUndefined: () => V) => (source: Maybe<V>) => reduceLazy(source, ifUndefined);
+export const map_ = <V extends Some, R extends Some>(selector: (v: V) => R | undefined) => (source: Maybe<V>) => map(source, selector);
+export const filter_ = <V extends Some>(predicate: (v: V) => boolean) => (source: Maybe<V>) => filter(source, predicate);
