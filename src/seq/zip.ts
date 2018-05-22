@@ -1,3 +1,4 @@
+import { Maybe, Some } from '../utility/option';
 import { append } from './append';
 import { fromGenerator } from './fromGenerator';
 import { map } from './map';
@@ -11,26 +12,26 @@ function foreverUndefined() {
     return fromGenerator(items);
 }
 
-export function zip2<T1, T2>(
-    s1: Iterable<NonNullable<T1>>,
-    s2: Iterable<NonNullable<T2>>) {
-    return map(zip4Internal(s1, s2, foreverUndefined(), foreverUndefined()), i => [i[0], i[1]] as [T1, T2]);
+export function zip2<T1 extends Some, T2 extends Some>(
+    s1: Iterable<T1>,
+    s2: Iterable<T2>) {
+    return map(zip4Internal(s1, s2, foreverUndefined(), foreverUndefined()), i => [i[0], i[1]] as [Maybe<T1>, Maybe<T2>]);
 }
 
-export function zip3<T1, T2, T3>(
-    s1: Iterable<NonNullable<T1>>,
-    s2: Iterable<NonNullable<T2>>,
-    s3: Iterable<NonNullable<T3>>) {
-    return map(zip4Internal(s1, s2, s3, foreverUndefined()), i => [i[0], i[1], i[2]] as [T1, T2, T3]);
+export function zip3<T1 extends Some, T2 extends Some, T3 extends Some>(
+    s1: Iterable<T1>,
+    s2: Iterable<T2>,
+    s3: Iterable<T3>) {
+    return map(zip4Internal(s1, s2, s3, foreverUndefined()), i => [i[0], i[1], i[2]] as [Maybe<T1>, Maybe<T2>, Maybe<T3>]);
 }
 
-export function zip4<T1, T2, T3, T4>(
-    s1: Iterable<NonNullable<T1>>,
-    s2: Iterable<NonNullable<T2>>,
-    s3: Iterable<NonNullable<T3>>,
-    s4: Iterable<NonNullable<T4>>
+export function zip4<T1 extends Some, T2 extends Some, T3 extends Some, T4 extends Some>(
+    s1: Iterable<T1>,
+    s2: Iterable<T2>,
+    s3: Iterable<T3>,
+    s4: Iterable<T4>
 ) {
-    return map(zip4Internal(s1, s2, s3, s4), i => [i[0], i[1], i[2], i[3]] as [T1, T2, T3, T4]);
+    return map(zip4Internal(s1, s2, s3, s4), i => [i[0], i[1], i[2], i[3]] as [Maybe<T1>, Maybe<T2>, Maybe<T3>, Maybe<T4>]);
 }
 
 function zip4Internal<T1, T2, T3, T4>(
@@ -63,13 +64,13 @@ function zip4Internal<T1, T2, T3, T4>(
 }
 
 // tslint:disable-next-line:variable-name
-export const zip2_ = <T1, T2>(s2: Iterable<NonNullable<T2>>) =>
-    (s1: Iterable<NonNullable<T1>>) => zip2(s1, s2);
+export const zip2_ = <T1 extends Some, T2 extends Some>(s2: Iterable<T2>) =>
+    (s1: Iterable<T1>) => zip2(s1, s2);
 
 // tslint:disable-next-line:variable-name
-export const zip3_ = <T1, T2, T3>(s2: Iterable<NonNullable<T2>>, s3: Iterable<NonNullable<T2>>) =>
-    (s1: Iterable<NonNullable<T1>>) => zip3(s1, s2, s3);
+export const zip3_ = <T1 extends Some, T2 extends Some, T3 extends Some>(s2: Iterable<T2>, s3: Iterable<T2>) =>
+    (s1: Iterable<T1>) => zip3(s1, s2, s3);
 
 // tslint:disable-next-line:variable-name
-export const zip4_ = <T1, T2, T3, T4>(s2: Iterable<NonNullable<T2>>, s3: Iterable<NonNullable<T2>>, s4: Iterable<NonNullable<T2>>) =>
-    (s1: Iterable<NonNullable<T1>>) => zip4(s1, s2, s3, s4);
+export const zip4_ = <T1 extends Some, T2 extends Some, T3 extends Some, T4 extends Some>(s2: Iterable<T2>, s3: Iterable<T2>, s4: Iterable<T2>) =>
+    (s1: Iterable<T1>) => zip4(s1, s2, s3, s4);
