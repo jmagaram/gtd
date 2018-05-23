@@ -12,7 +12,8 @@ import { Observable, Subscription } from "rxjs";
  * unsubscribed from when the component unmounts. To limit unnecessary rendering of the
  * child component, make use of the rxjs distinctUntilChanged operators.
  */
-export function propsFromObservable<P, W extends React.Component<P>>(Wrapped: { new(props: P, context?: any): W }) {
+
+export function propsFromObservable<P, W extends React.Component<P>>(Wrapped: React.ComponentClass<P> | React.StatelessComponent<P>) {
     type HocProps = P & { props$: Observable<Partial<P>> }
     type HocState = Partial<P>
     const PropsFromObservable = class extends React.Component<HocProps, HocState> {
