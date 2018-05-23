@@ -6,6 +6,9 @@ import * as AppState from 'src/state/appState'
 
 export type T = Store.T<AppState.T, ActionTypes>;
 
+// need way to dispose every subscription
+// takeUntil... with Dispose() on the store?
+
 export function createDefault() {
     const store = Store.create(AppState.createDefault(), AppState.reducer);
     const subscription = store.action$.subscribe(i => {
