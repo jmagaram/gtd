@@ -3,11 +3,14 @@ import { Observable, Subscription } from "rxjs";
 
 /**
  * Creates a higher-order component that wraps an existing component and updates some or
- * all of its properties each time the specified rxjs observable emits a new value. The
- * property stream is automatically subscribed to when the component is mounted, and 
- * unsubscribed from when the component unmounts.
+ * all of its properties each time the specified rxjs observable emits a new value.
+ * 
  * @param Wrapped The component to wrap.
  * @returns A component that gets its properties from an rxjs observable.
+ * 
+ * The property stream is automatically subscribed to when the component is mounted, and 
+ * unsubscribed from when the component unmounts. To limit unnecessary rendering of the
+ * child component, make use of the rxjs distinctUntilChanged operators.
  */
 export function propsFromObservable<P, W extends React.Component<P>>(Wrapped: { new(props: P, context?: any): W }) {
     type HocProps = P & { props$: Observable<Partial<P>> }
