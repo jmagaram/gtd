@@ -2,8 +2,7 @@ import * as React from 'react';
 import * as Rx from 'rxjs'
 import { distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { factory as actionFactory } from 'src/actions'
-import { T as ActionItemListItem } from 'src/components/ActionItemListItem'
-import { Properties as ActionItemProperties } from 'src/components/ActionItemListItem'
+import { Properties as ActionItemProperties, T as ActionItemListItem } from 'src/components/ActionItemListItemComponent'
 import { connectPropsToObservable } from 'src/reactUtility/connectPropsToObservable'
 import { T as UniqueId } from 'src/state/uniqueId'
 import * as Store from 'src/store'
