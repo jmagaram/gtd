@@ -14,8 +14,3 @@ export function forNode() {
     Dexie.dependencies.indexedDB = indexedDB
     Dexie.dependencies.IDBKeyRange = IDBKeyRange
 }
-
-export function forBrowser() {
-    Dexie.dependencies.indexedDB = window.indexedDB
-    Dexie.dependencies.IDBKeyRange = window.IDBKeyRange
-}
