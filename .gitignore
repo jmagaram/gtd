@@ -2,6 +2,7 @@
 
 # added these custom
 /.vscode/chrome
+/*.sqlite
 
 # dependencies
 /node_modules
