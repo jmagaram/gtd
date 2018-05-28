@@ -1,6 +1,7 @@
 import * as Rx from 'rxjs'
 import { filter, map, take, takeUntil } from 'rxjs/operators';
 import { ActionTypes, factory } from 'src/actions'
+import { createStorageService } from 'src/db/storageService'
 import * as Store from 'src/reactUtility/atomDb'
 import * as AppState from 'src/state/appState'
 
@@ -11,6 +12,7 @@ export type T = Store.T<AppState.T, ActionTypes>;
 
 export function createDefault() {
     const store = Store.create(AppState.createDefault(), AppState.reducer);
+    const db = createStorageService();
     const subscription = store.action$.subscribe(i => {
         switch (i.type) {
             case "actionItem_startPurge": {
@@ -27,6 +29,10 @@ export function createDefault() {
                         }
                     });
             }
+            // case "actionItem_purge": {
+            //     const x = i.payload;
+            //     db.deleteActionItem(x);
+            // }
         }
     });
     return store;

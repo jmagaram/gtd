@@ -8,24 +8,28 @@ export interface ActionItem {
 }
 
 export interface StorageService {
-    SaveActionItem(actionItem: ActionItem): Promise<void>;
-    GetAllActionItems(): Promise<ReadonlyArray<ActionItem>>;
-    ClearAll(): Promise<void>;
+    saveActionItem(actionItem: ActionItem): Promise<void>;
+    getAllActionItems(): Promise<ReadonlyArray<ActionItem>>;
+    deleteActionItem(id: string): Promise<void>;
+    clearAll(): Promise<void>;
 }
 
 export function createStorageService(): StorageService {
     const db = new LocalIndexedDatabase();
     return {
-        SaveActionItem: async (actionItem: ActionItem) => {
+        saveActionItem: async (actionItem: ActionItem) => {
             await db.actionItems.put(actionItem);
         },
-        GetAllActionItems: async () => {
+        getAllActionItems: async () => {
             return db.actionItems.toArray();
         },
-        ClearAll: async () => {
+        clearAll: async () => {
             await db.transaction("rw", db.actionItems, async () => {
                 await db.actionItems.clear();
             });
+        },
+        deleteActionItem: async (id: string) => {
+            await db.actionItems.delete(id);
         }
     };
 }
@@ -35,7 +39,6 @@ class LocalIndexedDatabase extends Dexie {
 
     constructor() {
         super("gtdlocaldatabase");
-
         this.version(1).stores({
             actionItems: 'id, title, isImportant, isComplete'
         });
