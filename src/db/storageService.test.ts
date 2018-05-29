@@ -12,9 +12,35 @@ beforeEach(async () => {
 
 test("can save and load action items", async () => {
     const db = Storage.createStorageService();
-    await db.saveActionItem({ id: "1", isImportant: false, isComplete: false, title: "call dad" });
-    await db.saveActionItem({ id: "2", isImportant: false, isComplete: false, title: "fix car" });
+    await db.saveActionItem({
+        id: "1",
+        isImportant: false,
+        isComplete: false,
+        title: "call dad"
+    });
+    await db.saveActionItem({
+        id: "2",
+        isImportant: false,
+        isComplete: false,
+        title: "fix car"
+    });
     const actions = await db.getAllActionItems();
     expect(actions.filter(i => i.id === "1")[0].title).toBe("call dad");
     expect(actions.filter(i => i.id === "2")[0].title).toBe("fix car");
+});
+
+test("can get notified of insertions", async () => {
+    const db = Storage.createStorageService();
+    let result: ReadonlyArray<Storage.RowChange> = [];
+    const sub = db.changes$.subscribe(i => {
+        result = i;
+    });
+    await db.saveActionItem({
+        id: "1",
+        isImportant: false,
+        isComplete: false,
+        title: "call dad"
+    });
+    expect(result.length).toBe(1);
+    sub.unsubscribe();
 });
