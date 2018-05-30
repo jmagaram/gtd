@@ -19,6 +19,16 @@ export function createActionItem(title: string, isImportant: boolean, isComplete
     };
 }
 
+export function createActionItemWithId(id: UniqueId.T, title: string, isImportant: boolean, isComplete: boolean): T {
+    return {
+        isComplete,
+        isImportant,
+        title,
+        uniqueId: id,
+        purgePercentComplete: undefined
+    };
+}
+
 export const reducer = (i: T, action: ActionTypes): T => {
     switch (action.type) {
         case "actionItem_toggleComplete": return action.payload.id === i.uniqueId ? { ...i, isComplete: !i.isComplete } : i;
