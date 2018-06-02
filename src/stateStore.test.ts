@@ -46,9 +46,10 @@ const addNumberKey = {
 
 interface Configuration {
   initialState: number;
-  addMarbles: string;
-  negateMarbles?: string;
-  expectedMarbles: string;
+  add?: string;
+  negate?: string;
+  shutdown?: string;
+  expected: string;
   expectedMap: {
     a?: number;
     b?: number;
@@ -73,43 +74,80 @@ function genericStoreTest(c: Configuration) {
       reducer,
       ...Option.reduce(c.middleware, [])
     );
-    hot<number>(c.addMarbles, addNumberKey)
-      .pipe(map(i => store.dispatch(add(i))))
-      .subscribe();
-    if (c.negateMarbles !== undefined) {
-      hot(c.negateMarbles)
+    if (c.add !== undefined) {
+      hot<number>(c.add, addNumberKey)
+        .pipe(map(i => store.dispatch(add(i))))
+        .subscribe();
+    }
+    if (c.negate !== undefined) {
+      hot(c.negate)
         .pipe(map(() => store.dispatch(negateAction)))
         .subscribe();
     }
-    sch.expectObservable(store.state$).toBe(c.expectedMarbles, c.expectedMap);
+    if (c.shutdown !== undefined) {
+      hot(c.shutdown)
+        .pipe(map(() => store.shutdown()))
+        .subscribe();
+    }
+    sch.expectObservable(store.state$).toBe(c.expected, c.expectedMap);
   });
 }
 
-test("when subscribe before any dispatched actions, emit the initial state", () => {
+test("state$ - when subscribe before any action is dispatched, get the initial state", () => {
   const c: Configuration = {
-    addMarbles: "--------^--------",
-    negateMarbles: "--------^--------",
-    expectedMarbles: "a--------",
+    initialState: 100,
+    add: "--------^--------",
+    expected: "a--------",
     expectedMap: {
-      a: 99
-    },
-    initialState: 99
+      a: 100
+    }
   };
   genericStoreTest(c);
 });
 
-test("when subscribe after actions dispatched, can still get the current state", () => {
+test("state$ - when subscribe after actions have been dispatched, get the current state", () => {
   const c: Configuration = {
-    addMarbles: "--1---3--^--2--8----",
-    negateMarbles: "----x----^--------x-",
-    expectedMarbles: "a--b--c--d-",
+    initialState: 100,
+    add: "--1---3--^----------",
+    expected: "a----",
     expectedMap: {
-      a: 2,
-      b: 4,
-      c: 12,
-      d: -12
-    },
-    initialState: 0
+      a: 104
+    }
+  };
+  genericStoreTest(c);
+});
+
+test("state$ - when each action is processed, update and emit the new state", () => {
+  const c: Configuration = {
+    initialState: 0,
+    add: "--1---3--8--2--8",
+    negate: "----x------x----",
+    expected: "a-b-c-d--e-fg--h",
+    expectedMap: {
+      a: 0,
+      b: 1,
+      c: -1,
+      d: 2,
+      e: 10,
+      f: -10,
+      g: -8,
+      h: 0
+    }
+  };
+  genericStoreTest(c);
+});
+
+test("state$ - on shutdown, emit completed", () => {
+  const c: Configuration = {
+    initialState: 0,
+    add: "--1---3--8--2--8",
+    shutdown: "--------x-------",
+    expected: "a-b---c-|",
+    expectedMap: {
+      a: 0,
+      b: 1,
+      c: 4
+    }
   };
   genericStoreTest(c);
 });
@@ -118,8 +156,8 @@ test("middleware can filter out actions", () => {
   const filterNegate: MidWare = (s$, a$) =>
     a$.pipe(filter(i => i.message.kind === "add"));
   const c: Configuration = {
-    addMarbles: "--1---3--^--2--8----",
-    expectedMarbles: "a--b--c----",
+    add: "--1---3--^--2--8----",
+    expected: "a--b--c----",
     expectedMap: {
       a: 4,
       b: 6,
@@ -140,8 +178,8 @@ test("middleware can dispatch new actions based on current state", () => {
       )
     );
   const c: Configuration = {
-    addMarbles: "--0---1------1------",
-    expectedMarbles: "a-b---(cd)---(ef)---",
+    add: "--0---1------1------",
+    expected: "a-b---(cd)---(ef)---",
     expectedMap: {
       a: 1,
       b: 1,
@@ -171,8 +209,8 @@ test("middleware can change and forward new actions", () => {
     );
   // prettier-ignore
   const c: Configuration = {
-      addMarbles:      "--5-----7-------------",
-      expectedMarbles: "a-(bc)--(de)-----",
+      add:      "--5-----7-------------",
+      expected: "a-(bc)--(de)-----",
       initialState: 1,
       expectedMap: {
       a: 1,
@@ -207,8 +245,8 @@ test("middleware chain is processed in correct order", () => {
     );
   // prettier-ignore
   const c: Configuration = {
-      addMarbles:      "--1---2-----3-------",
-      expectedMarbles: "a-b---c-----d-------",
+      add:      "--1---2-----3-------",
+      expected: "a-b---c-----d-------",
       initialState: 0,
       expectedMap: {
       a: 0,
@@ -236,34 +274,55 @@ test("can dispatch an action stream", () => {
   });
 });
 
-test("can dispatch more than one overlapping stream, even after first completes", () => {
-  const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
-  sch.run(({ hot, cold }) => {
-    const store = Store.create<number, Action>(0, reducer);
-    const marbles = {
-      addActions: "1--5--9-|",
-      dispatchOn: "-x-x---------x---------",
-      expected: "ab-cd-ef-g---h--i--j"
-    };
-    const expectedMap = {
-      a: 0,
-      b: 1,
-      c: 2,
-      d: 7,
-      e: 12,
-      f: 21,
-      g: 30,
-      h: 31,
-      i: 36,
-      j: 45
-    };
-    const actionsToDispatch$ = cold<number>(
-      marbles.addActions,
-      addNumberKey
-    ).pipe(map(i => add(i)));
-    const timedDispatch$ = cold(marbles.dispatchOn)
-      .pipe(map(i => store.dispatchStream(actionsToDispatch$)))
-      .subscribe();
-    sch.expectObservable(store.state$).toBe(marbles.expected, expectedMap);
-  });
-});
+// test("can dispatch more than one overlapping stream, even after first completes", () => {
+//   const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
+//   sch.run(({ cold }) => {
+//     const store = Store.create<number, Action>(0, reducer);
+//     const marbles = {
+//       addActions: "1--5--9-|",
+//       dispatchOn: "-x-x---------x---------",
+//       expected: "ab-cd-ef-g---h--i--j"
+//     };
+//     const expectedMap = {
+//       a: 0,
+//       b: 1,
+//       c: 2,
+//       d: 7,
+//       e: 12,
+//       f: 21,
+//       g: 30,
+//       h: 31,
+//       i: 36,
+//       j: 45
+//     };
+//     const actionsToDispatch$ = cold<number>(
+//       marbles.addActions,
+//       addNumberKey
+//     ).pipe(map(i => add(i)));
+//     sch.expectObservable(store.state$).toBe(marbles.expected, expectedMap);
+//   });
+// });
+
+// when dispatch stream, subscribe to it once
+
+// test("shutdown unsubscribes from dispatched action streams", () => {
+//   const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
+//   sch.run(({ hot, cold }) => {
+//     const store = Store.create<number, Action>(0, reducer);
+//     const marbles = {
+//       shutdown: "----x",
+//       addThree: "-x-----xxxxx",
+//       expected: "ab--|",
+//       expdissub: "^---!"
+//     };
+//     const timedShutdown$ = cold(marbles.shutdown)
+//       .pipe(map(i => store.shutdown()))
+//       .subscribe();
+//     const toDispatch$ = cold(marbles.addThree);
+//     store.dispatchStream(toDispatch$.pipe(map(i => add(3)))); // start at 0
+//     sch.expectObservable(store.state$).toBe(marbles.expected, { a: 0, b: 3 });
+//     sch.expectSubscriptions(toDispatch$.subscriptions).toBe(marbles.expdissub);
+//   });
+// });
+
+// sends completed to middleware using state and action streams

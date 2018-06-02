@@ -4,7 +4,13 @@ import {
   of as observableOf,
   Subject
 } from "rxjs";
-import { filter, map, mergeMap, withLatestFrom } from "rxjs/operators";
+import {
+  filter,
+  map,
+  mergeMap,
+  takeUntil,
+  withLatestFrom
+} from "rxjs/operators";
 
 export interface Store<State, Action> {
   state$: Obs<State>;
@@ -57,7 +63,10 @@ export function create<State, Action>(
   const state$ = new BehaviorSubject<State>(initialState);
   const shutdown$ = new Subject<any>();
   const actionSource$$ = new Subject<Obs<Action>>();
-  const actionSource$ = actionSource$$.pipe(mergeMap(i => i));
+  const actionSource$ = actionSource$$.pipe(
+    mergeMap(i => i),
+    takeUntil(shutdown$)
+  );
   const passThroughMiddleware: Middleware<State, Action> = (
     s$: Obs<State>,
     a$: Obs<Envelope<Action>>
@@ -90,7 +99,7 @@ export function create<State, Action>(
     )
     .subscribe(j => dispatch(j));
   const result = {
-    state$,
+    state$: state$.asObservable().pipe(takeUntil(shutdown$)),
     dispatch,
     dispatchStream,
     shutdown: () => shutdown$.next(true)
