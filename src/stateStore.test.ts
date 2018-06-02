@@ -1,17 +1,7 @@
-import { Observable as Obs, of as obsOf, interval } from "rxjs";
-import {
-  filter,
-  flatMap,
-  map,
-  take,
-  withLatestFrom,
-  delay,
-  repeat,
-  takeUntil
-} from "rxjs/operators";
+import { empty, interval, Observable as Obs, of as obsOf } from "rxjs";
+import { delay, filter, flatMap, map, takeUntil } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
 import * as Store from "./stateStore";
-import { Middleware } from "./stateStore";
 import * as Option from "./utility/option";
 
 interface AddAction {
@@ -29,7 +19,7 @@ const add = (operand: number): AddAction => ({ kind: "add", operand });
 
 const negateAction: NegateAction = { kind: "negate" };
 
-type MidWare = Store.Middleware<number, Action>;
+type MidWare = Store.ActionProcessor<number, Action>;
 
 function reducer(state: number, action: Action) {
   switch (action.kind) {
@@ -72,7 +62,7 @@ interface Configuration {
     j?: number;
     k?: number;
   };
-  middleware?: Array<Middleware<number, Action>>;
+  middleware?: MidWare[];
 }
 
 function genericStoreTest(c: Configuration) {
@@ -188,9 +178,11 @@ test("dispatch observable", () => {
   });
 });
 
-test("middleware can filter out actions", () => {
-  const filterNegate: MidWare = (s$, a$) =>
-    a$.pipe(filter(i => i.message.kind === "add"));
+test("middleware can filter actions that get forwarded", () => {
+  const filterNegate: MidWare = ({ action$: a$ }) => ({
+    forward$: a$.pipe(filter(i => i.kind === "add")),
+    dispatch$: empty()
+  });
   const c: Configuration = {
     add: "--1---3--^--2--8----",
     expected: "a--b--c----",
@@ -205,44 +197,97 @@ test("middleware can filter out actions", () => {
   genericStoreTest(c);
 });
 
-test("middleware can dispatch new actions based on current state", () => {
-  const dispatchAddFiveWhenStateIsEven: MidWare = (s$, a$) =>
-    a$.pipe(
-      withLatestFrom(s$),
-      flatMap(i =>
-        obsOf(i[0], Store.send(add(5))).pipe(take(i[1] % 2 === 0 ? 2 : 1))
-      )
-    );
+test("middleware can dispatch new delayed actions based on state$", () => {
+  const dispatchAddFiveWhenStateIsTen: MidWare = ({
+    action$: a$,
+    state$: s$
+  }) => ({
+    dispatch$: s$.pipe(filter(s => s === 10), delay(1), map(_ => add(5))),
+    forward$: a$
+  });
+  // prettier-ignore
   const c: Configuration = {
-    add: "--0---1------1------",
-    expected: "a-b---(cd)---(ef)---",
+    initialState: 0,
+    add:      "-2-2-6--7",
+    expected: "ab-c-de-f",
     expectedMap: {
-      a: 1,
-      b: 1,
-      c: 2,
-      d: 7,
-      e: 8,
-      f: 13
+      a: 0,
+      b: 2,
+      c: 4,
+      d: 10,
+      e: 15,
+      f: 22
     },
-    initialState: 1,
-    middleware: [dispatchAddFiveWhenStateIsEven]
+    middleware: [dispatchAddFiveWhenStateIsTen]
   };
   genericStoreTest(c);
 });
 
+test("middleware can dispatch new synchronous actions based on state$", () => {
+  const dispatchAddFiveWhenStateIsTen: MidWare = ({
+    action$: a$,
+    state$: s$
+  }) => ({
+    dispatch$: s$.pipe(filter(s => s === 10), map(_ => add(5))),
+    forward$: a$
+  });
+  // prettier-ignore
+  const c: Configuration = {
+    initialState: 0,
+    add:      "-2---2-6   ----7",
+    expected: "ab---c-(de)----f",
+    expectedMap: {
+      a: 0,
+      b: 2,
+      c: 4,
+      d: 10,
+      e: 15,
+      f: 22
+    },
+    middleware: [dispatchAddFiveWhenStateIsTen]
+  };
+  genericStoreTest(c);
+});
+
+// test("middleware can dispatch new actions based on current state", () => {
+//   const dispatchAddFiveWhenStateIsEven: MidWare = ({
+//     state$: s$,
+//     action$: a$
+//   }) => ({
+//     dispatch$: a$.pipe(
+//       withLatestFrom(s$),
+//       filter(([_, state]) => state % 2 === 0),
+//       map(_ => add(5))
+//     ),
+//     forward$: a$
+//   });
+//   const c: Configuration = {
+//     add: "--0---1------1------",
+//     expected: "a-b---(cd)---(ef)---",
+//     expectedMap: {
+//       a: 1,
+//       b: 1,
+//       c: 2,
+//       d: 7,
+//       e: 8,
+//       f: 13
+//     },
+//     initialState: 1,
+//     middleware: [dispatchAddFiveWhenStateIsEven]
+//   };
+//   genericStoreTest(c);
+// });
+
 test("middleware can change and forward new actions", () => {
-  const transform: MidWare = (s$, a$) =>
-    a$.pipe(
+  const transform: MidWare = ({ action$: a$ }) => ({
+    forward$: a$.pipe(
       flatMap(
         i =>
-          i.message.kind === "add"
-            ? obsOf(
-                Store.forward(negateAction),
-                Store.forward(add(i.message.operand * 3))
-              )
-            : obsOf(i)
+          i.kind === "add" ? obsOf(negateAction, add(i.operand * 3)) : obsOf(i)
       )
-    );
+    ),
+    dispatch$: empty()
+  });
   // prettier-ignore
   const c: Configuration = {
       add:      "--5-----7-------------",
@@ -261,24 +306,18 @@ test("middleware can change and forward new actions", () => {
 });
 
 test("middleware chain is processed in correct order", () => {
-  const incrementOperand: MidWare = (s$, a$) =>
-    a$.pipe(
-      map(
-        i =>
-          i.message.kind === "add"
-            ? Store.forward(add(i.message.operand + 1))
-            : i
-      )
-    );
-  const multiplyOperandByFive: MidWare = (s$, a$) =>
-    a$.pipe(
-      map(
-        i =>
-          i.message.kind === "add"
-            ? Store.forward(add(i.message.operand * 5))
-            : i
-      )
-    );
+  const incrementOperand: MidWare = ({ action$: a$ }) => ({
+    forward$: a$.pipe(
+      flatMap(i => (i.kind === "add" ? obsOf(add(i.operand + 1)) : obsOf(i)))
+    ),
+    dispatch$: empty()
+  });
+  const multiplyOperandByFive: MidWare = ({ action$: a$ }) => ({
+    forward$: a$.pipe(
+      flatMap(i => (i.kind === "add" ? obsOf(add(i.operand * 5)) : obsOf(i)))
+    ),
+    dispatch$: empty()
+  });
   // prettier-ignore
   const c: Configuration = {
       add:      "--1---2-----3-------",

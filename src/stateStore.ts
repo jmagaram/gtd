@@ -1,20 +1,12 @@
 import {
   BehaviorSubject,
+  empty,
+  merge,
   Observable as Obs,
   of as observableOf,
   Subject
 } from "rxjs";
-import {
-  filter,
-  map,
-  mergeMap,
-  takeUntil,
-  withLatestFrom
-} from "rxjs/operators";
-
-type Process<State, Action> = (
-  context: { action$: Obs<Action>; state$: Obs<State>; shutdown$: Obs<any> }
-) => Obs<Action>;
+import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
 
 export interface Store<State, Action> {
   state$: Obs<State>;
@@ -32,36 +24,43 @@ export interface Store<State, Action> {
   shutdown(): void;
 }
 
-export enum Destination {
-  dispatcher,
-  forward
+interface Context<State, Action> {
+  state$: Obs<State>;
+  action$: Obs<Action>;
+  shutdown$: Obs<any>;
 }
 
-interface Envelope<T> {
-  message: T;
-  destination: Destination;
-}
+export type ActionProcessor<State, Action> = (
+  { state$, action$, shutdown$ }: Context<State, Action>
+) => {
+  forward$: Obs<Action>;
+  dispatch$: Obs<Action>;
+};
 
-const createEnvelope = <T>(
-  message: T,
-  destination: Destination
-): Envelope<T> => {
+const chainTwoActionProcessors = <State, Action>(
+  a: ActionProcessor<State, Action>,
+  b: ActionProcessor<State, Action>
+): ActionProcessor<State, Action> => ({
+  state$,
+  action$,
+  shutdown$
+}: Context<State, Action>) => {
+  const aResult = a({ state$, action$, shutdown$ });
+  const bResult = b({ state$, action$: aResult.forward$, shutdown$ });
   return {
-    message,
-    destination
+    forward$: bResult.forward$,
+    dispatch$: merge(aResult.dispatch$, bResult.dispatch$)
   };
 };
 
-export const send = <T>(message: T) =>
-  createEnvelope(message, Destination.dispatcher);
+const chainActionProcessors = <State, Action>(
+  first: ActionProcessor<State, Action>,
+  rest: Array<ActionProcessor<State, Action>>
+) => rest.reduce(chainTwoActionProcessors, first);
 
-export const forward = <T>(message: T) =>
-  createEnvelope(message, Destination.forward);
-
-export type Middleware<State, Action> = (
-  state$: Obs<State>,
-  action$: Obs<Envelope<Action>>
-) => Obs<Envelope<Action>>;
+const forwardAll = <State, Action>(): ActionProcessor<State, Action> => ({
+  action$
+}: Context<State, Action>) => ({ forward$: action$, dispatch$: empty() });
 
 export type Reducer<State, Action> = (
   previousState: State,
@@ -71,7 +70,7 @@ export type Reducer<State, Action> = (
 export function create<State, Action>(
   initialState: State,
   reducer: Reducer<State, Action>,
-  ...middleware: Array<Middleware<State, Action>>
+  ...middleware: Array<ActionProcessor<State, Action>>
 ): Store<State, Action> {
   const state$ = new BehaviorSubject<State>(initialState);
   const shutdown$ = new Subject<any>();
@@ -80,18 +79,9 @@ export function create<State, Action>(
     mergeMap(i => i),
     takeUntil(shutdown$)
   );
-  const passThroughMiddleware: Middleware<State, Action> = (
-    s$: Obs<State>,
-    a$: Obs<Envelope<Action>>
-  ) => a$;
-  type MidWare = Middleware<State, Action>;
-  const combineTwoMiddleWare = (fst: MidWare, snd: MidWare): MidWare => (
-    s$: Obs<State>,
-    a$: Obs<Envelope<Action>>
-  ) => snd(s$, fst(s$, a$));
-  const combineAllMiddleware: MidWare = middleware.reduce(
-    combineTwoMiddleWare,
-    passThroughMiddleware
+  const actionProcessor = chainActionProcessors(
+    forwardAll<State, Action>(),
+    middleware
   );
   const dispatch = (a: Action) => dispatchStream(observableOf(a));
   const dispatchStream = (a$: Obs<Action>) => actionSource$$.next(a$);
@@ -104,22 +94,18 @@ export function create<State, Action>(
       }>
     ) => Obs<Action>
   ) => dispatchStream(factory({ state$, action$: actionSource$, shutdown$ }));
-  const actionsAfterMiddleware$ = combineAllMiddleware(
+  const actionsAfterMiddleware = actionProcessor({
     state$,
-    actionSource$.pipe(map(i => forward(i)))
-  ); // publish?
-  actionsAfterMiddleware$
+    action$: actionSource$,
+    shutdown$
+  });
+  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until
+  actionsAfterMiddleware.forward$ // take until
     .pipe(
-      filter(i => i.destination === Destination.forward),
-      withLatestFrom(state$)
+      withLatestFrom(state$),
+      map(([action, state]) => reducer(state, action))
     )
-    .subscribe(i => state$.next(reducer(i[1], i[0].message)));
-  actionsAfterMiddleware$
-    .pipe(
-      filter(i => i.destination === Destination.dispatcher),
-      map(i => i.message)
-    )
-    .subscribe(j => dispatch(j));
+    .subscribe(n => state$.next(n));
   const result = {
     state$: state$.asObservable().pipe(takeUntil(shutdown$)),
     dispatch,
