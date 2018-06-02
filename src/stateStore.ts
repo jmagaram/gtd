@@ -12,10 +12,23 @@ import {
   withLatestFrom
 } from "rxjs/operators";
 
+type Process<State, Action> = (
+  context: { action$: Obs<Action>; state$: Obs<State>; shutdown$: Obs<any> }
+) => Obs<Action>;
+
 export interface Store<State, Action> {
   state$: Obs<State>;
   dispatch(action: Action): void;
   dispatchStream(action$: Obs<Action>): void;
+  dispatchObservable(
+    factory: (
+      context: Partial<{
+        action$: Obs<Action>;
+        state$: Obs<State>;
+        shutdown$: Obs<any>;
+      }>
+    ) => Obs<Action>
+  ): void;
   shutdown(): void;
 }
 
@@ -82,6 +95,15 @@ export function create<State, Action>(
   );
   const dispatch = (a: Action) => dispatchStream(observableOf(a));
   const dispatchStream = (a$: Obs<Action>) => actionSource$$.next(a$);
+  const dispatchObservable = (
+    factory: (
+      context: Partial<{
+        action$: Obs<Action>;
+        state$: Obs<State>;
+        shutdown$: Obs<any>;
+      }>
+    ) => Obs<Action>
+  ) => dispatchStream(factory({ state$, action$: actionSource$, shutdown$ }));
   const actionsAfterMiddleware$ = combineAllMiddleware(
     state$,
     actionSource$.pipe(map(i => forward(i)))
@@ -102,6 +124,7 @@ export function create<State, Action>(
     state$: state$.asObservable().pipe(takeUntil(shutdown$)),
     dispatch,
     dispatchStream,
+    dispatchObservable,
     shutdown: () => shutdown$.next(true)
   };
   Object.freeze(result);

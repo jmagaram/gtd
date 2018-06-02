@@ -1,5 +1,14 @@
-import { of as obsOf } from "rxjs";
-import { filter, flatMap, map, take, withLatestFrom } from "rxjs/operators";
+import { Observable as Obs, of as obsOf, interval } from "rxjs";
+import {
+  filter,
+  flatMap,
+  map,
+  take,
+  withLatestFrom,
+  delay,
+  repeat,
+  takeUntil
+} from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
 import * as Store from "./stateStore";
 import { Middleware } from "./stateStore";
@@ -150,6 +159,33 @@ test("state$ - on shutdown, emit completed", () => {
     }
   };
   genericStoreTest(c);
+});
+
+test("dispatch observable", () => {
+  const store = Store.create(0, reducer);
+  const process = (context: {
+    action$: Obs<Action>;
+    state$: Obs<number>;
+    shutdown$: Obs<any>;
+  }) =>
+    interval(3).pipe(
+      map(i => add(2)),
+      takeUntil(context.action$.pipe(filter(i => i.kind === "negate")))
+    );
+  const sch = new TestScheduler((a, e) => expect(a).toEqual(e));
+  sch.run(({ hot }) => {
+    store.dispatchObservable(process);
+    hot("-------------x")
+      .pipe(map(i => store.dispatch(negateAction)))
+      .subscribe();
+    sch
+      .expectObservable(store.state$)
+      .toBe("a--b--c--d--ef-----", { a: 0, b: 2, c: 4, d: 6, e: 8, f: -8 });
+    // "---------x"
+    // "---x--x--x--x--x--x--x" adding
+    // "-------------x" negate
+    // "a--b--c--d--e-f-----" expected
+  });
 });
 
 test("middleware can filter out actions", () => {
