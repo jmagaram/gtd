@@ -1,5 +1,12 @@
 import { empty, interval, Observable as Obs, of as obsOf } from "rxjs";
-import { delay, filter, flatMap, map, takeUntil } from "rxjs/operators";
+import {
+  delay,
+  filter,
+  flatMap,
+  map,
+  takeUntil,
+  withLatestFrom
+} from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
@@ -234,7 +241,7 @@ test("middleware can dispatch new synchronous actions based on state$", () => {
   // prettier-ignore
   const c: Configuration = {
     initialState: 0,
-    add:      "-2---2-6   ----7",
+    add:      "-2---2-6-------7",
     expected: "ab---c-(de)----f",
     expectedMap: {
       a: 0,
@@ -249,34 +256,34 @@ test("middleware can dispatch new synchronous actions based on state$", () => {
   genericStoreTest(c);
 });
 
-// test("middleware can dispatch new actions based on current state", () => {
-//   const dispatchAddFiveWhenStateIsEven: MidWare = ({
-//     state$: s$,
-//     action$: a$
-//   }) => ({
-//     dispatch$: a$.pipe(
-//       withLatestFrom(s$),
-//       filter(([_, state]) => state % 2 === 0),
-//       map(_ => add(5))
-//     ),
-//     forward$: a$
-//   });
-//   const c: Configuration = {
-//     add: "--0---1------1------",
-//     expected: "a-b---(cd)---(ef)---",
-//     expectedMap: {
-//       a: 1,
-//       b: 1,
-//       c: 2,
-//       d: 7,
-//       e: 8,
-//       f: 13
-//     },
-//     initialState: 1,
-//     middleware: [dispatchAddFiveWhenStateIsEven]
-//   };
-//   genericStoreTest(c);
-// });
+test("middleware can dispatch new actions based on current state", () => {
+  const dispatchAddFiveWhenStateIsEven: MidWare = ({
+    state$: s$,
+    action$: a$
+  }) => ({
+    dispatch$: a$.pipe(
+      withLatestFrom(s$),
+      filter(([_, state]) => state % 2 === 0),
+      map(_ => add(5))
+    ),
+    forward$: a$
+  });
+  const c: Configuration = {
+    add: "--0---1------1------",
+    expected: "a-b---(cd)---(ef)---",
+    expectedMap: {
+      a: 1,
+      b: 1,
+      c: 2,
+      d: 7,
+      e: 8,
+      f: 13
+    },
+    initialState: 1,
+    middleware: [dispatchAddFiveWhenStateIsEven]
+  };
+  genericStoreTest(c);
+});
 
 test("middleware can change and forward new actions", () => {
   const transform: MidWare = ({ action$: a$ }) => ({

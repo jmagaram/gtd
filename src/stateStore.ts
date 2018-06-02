@@ -6,7 +6,13 @@ import {
   of as observableOf,
   Subject
 } from "rxjs";
-import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
+import {
+  map,
+  mergeMap,
+  takeUntil,
+  withLatestFrom,
+  delay
+} from "rxjs/operators";
 
 export interface Store<State, Action> {
   state$: Obs<State>;
@@ -99,13 +105,16 @@ export function create<State, Action>(
     action$: actionSource$,
     shutdown$
   });
-  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until
   actionsAfterMiddleware.forward$ // take until
     .pipe(
       withLatestFrom(state$),
       map(([action, state]) => reducer(state, action))
     )
     .subscribe(n => state$.next(n));
+  actionsAfterMiddleware.dispatch$.pipe(delay(0)).subscribe(n => dispatch(n)); // take until
+  // actionsAfterMiddleware.forward$
+  //   .pipe(map(a => reducer(state$.value, a)))
+  //   .subscribe(n => state$.next(n)); // take until
   const result = {
     state$: state$.asObservable().pipe(takeUntil(shutdown$)),
     dispatch,
