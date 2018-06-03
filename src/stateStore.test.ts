@@ -8,6 +8,7 @@ import {
   withLatestFrom
 } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
+import { ActionTypeUnion, createAction } from "../src/reactUtility/action";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
 
@@ -204,7 +205,7 @@ test("middleware can filter actions that get forwarded", () => {
   genericStoreTest(c);
 });
 
-test("middleware can dispatch new delayed actions based on state$", () => {
+test("middleware can dispatch delayed actions based on state$", () => {
   const dispatchAddFiveWhenStateIsTen: MidWare = ({
     action$: a$,
     state$: s$
@@ -230,7 +231,7 @@ test("middleware can dispatch new delayed actions based on state$", () => {
   genericStoreTest(c);
 });
 
-test("middleware can dispatch new synchronous actions based on state$", () => {
+test("middleware can dispatch synchronous actions based on state$", () => {
   const dispatchAddFiveWhenStateIsTen: MidWare = ({
     action$: a$,
     state$: s$
@@ -408,3 +409,76 @@ test("can dispatch an action stream", () => {
 // });
 
 // sends completed to middleware using state and action streams
+
+export const factory = {
+  append: (s: string) => createAction("append", s),
+  trigger: (n: number) => createAction("trigger", n)
+};
+
+export type ActionType = ActionTypeUnion<typeof factory>;
+
+const simpleReducer = (previousState: string, action: ActionType) => {
+  switch (action.type) {
+    case "append":
+      return previousState.concat(action.payload);
+    case "trigger":
+      return previousState;
+  }
+};
+
+test("append with middleware, not using state", () => {
+  const whenTriggerDispatchAppend = (
+    isTrigger: (n: number) => boolean,
+    whatToAppend: string
+  ) => ({ action$: a$ }: Store.Context<string, ActionType>) => ({
+    forward$: a$,
+    dispatch$: a$.pipe(
+      filter(i => i.type === "trigger" && isTrigger(i.payload)),
+      map(_ => factory.append(whatToAppend))
+    )
+  });
+  const dispatchA = whenTriggerDispatchAppend(n => true, "a");
+  const dispatchB = whenTriggerDispatchAppend(n => true, "b");
+  const dispatchC = whenTriggerDispatchAppend(n => true, "c");
+  const store = Store.create(
+    "",
+    simpleReducer,
+    dispatchA,
+    dispatchB,
+    dispatchC
+  );
+  let last: string = "";
+  store.state$.subscribe(i => (last = i));
+  store.dispatch(factory.trigger(0));
+  expect(last).toEqual("abc");
+});
+
+test("append with middleware, using state, every middleware sees same state ", () => {
+  const whenTriggerDispatchAppend = (
+    isTrigger: (n: number) => boolean,
+    whatToAppend: string
+  ) => ({ action$: a$, state$: s$ }: Store.Context<string, ActionType>) => ({
+    forward$: a$,
+    dispatch$: a$.pipe(
+      withLatestFrom(s$),
+      filter(
+        ([a, s]) => a.type === "trigger" && isTrigger(a.payload) && s === ""
+      ),
+      map(_ => factory.append(whatToAppend))
+    )
+  });
+  const dispatchA = whenTriggerDispatchAppend(n => true, "a");
+  const dispatchB = whenTriggerDispatchAppend(n => true, "b");
+  const dispatchC = whenTriggerDispatchAppend(n => true, "c");
+  const store = Store.create(
+    "",
+    simpleReducer,
+    dispatchA,
+    dispatchB,
+    dispatchC
+  );
+  let last: string = "";
+  store.state$.subscribe(i => (last = i));
+  store.dispatch(factory.trigger(0));
+  expect(last).toEqual("abc");
+});

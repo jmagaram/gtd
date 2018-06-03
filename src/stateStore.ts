@@ -30,7 +30,7 @@ export interface Store<State, Action> {
   shutdown(): void;
 }
 
-interface Context<State, Action> {
+export interface Context<State, Action> {
   state$: Obs<State>;
   action$: Obs<Action>;
   shutdown$: Obs<any>;
@@ -105,16 +105,16 @@ export function create<State, Action>(
     action$: actionSource$,
     shutdown$
   });
+  // dispatch before reduce?
+  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until
   actionsAfterMiddleware.forward$ // take until
     .pipe(
       withLatestFrom(state$),
       map(([action, state]) => reducer(state, action))
     )
     .subscribe(n => state$.next(n));
-  actionsAfterMiddleware.dispatch$.pipe(delay(0)).subscribe(n => dispatch(n)); // take until
-  // actionsAfterMiddleware.forward$
-  //   .pipe(map(a => reducer(state$.value, a)))
-  //   .subscribe(n => state$.next(n)); // take until
+  // actionsAfterMiddleware.dispatch$.pipe(delay(0)).subscribe(n => dispatch(n)); // take until
+  // readonly?
   const result = {
     state$: state$.asObservable().pipe(takeUntil(shutdown$)),
     dispatch,
@@ -125,3 +125,14 @@ export function create<State, Action>(
   Object.freeze(result);
   return result;
 }
+// action 1
+// action 2 mid A
+//    dispatch x but when will it arrive?
+// action 2 mid B
+//    dispatch y but when will it arrive?
+//    action 2 beforemiddleware
+//    dispatch x do not update state
+//    dispatch y do not update state
+//    action 2 reduce (or swallowed!)
+//    update state
+//
