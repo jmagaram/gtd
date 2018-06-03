@@ -1,484 +1,392 @@
-import { empty, interval, Observable as Obs, of as obsOf } from "rxjs";
-import {
-  delay,
-  filter,
-  flatMap,
-  map,
-  takeUntil,
-  withLatestFrom
-} from "rxjs/operators";
+import { empty, interval, Observable as Obs, of as obsOf, Subject } from "rxjs";
+import { delay, filter, map, mergeMap, take } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
-import { ActionTypeUnion, createAction } from "../src/reactUtility/action";
+import { createAction } from "../src/reactUtility/action";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
+import App from "./App";
+import { debug } from "console";
 
-interface AddAction {
-  readonly kind: "add";
-  readonly operand: number;
-}
+const append = (s: string) => createAction("append", s);
 
-interface NegateAction {
-  readonly kind: "negate";
-}
+type AppendAction = ReturnType<typeof append>;
 
-type Action = AddAction | NegateAction;
+const reducer = (state: string, action: AppendAction) => state + action.payload;
 
-const add = (operand: number): AddAction => ({ kind: "add", operand });
-
-const negateAction: NegateAction = { kind: "negate" };
-
-type MidWare = Store.ActionProcessor<number, Action>;
-
-function reducer(state: number, action: Action) {
-  switch (action.kind) {
-    case "add":
-      return action.operand + state;
-    case "negate":
-      return -state;
-  }
-}
-
-const addNumberKey = {
-  0: 0,
-  1: 1,
-  2: 2,
-  3: 3,
-  4: 4,
-  5: 5,
-  6: 6,
-  7: 7,
-  8: 8,
-  9: 9
+const letterKey = {
+  a: "a",
+  b: "b",
+  c: "c",
+  d: "d",
+  e: "e",
+  f: "f",
+  g: "g",
+  h: "h",
+  i: "i",
+  j: "j",
+  k: "k",
+  l: "l",
+  m: "m",
+  n: "n",
+  o: "o",
+  p: "p"
 };
 
 interface Configuration {
-  initialState: number;
-  add?: string;
-  negate?: string;
+  append: string;
   shutdown?: string;
   expected: string;
   expectedMap: {
-    a?: number;
-    b?: number;
-    c?: number;
-    d?: number;
-    e?: number;
-    f?: number;
-    g?: number;
-    h?: number;
-    i?: number;
-    j?: number;
-    k?: number;
+    A?: string;
+    B?: string;
+    C?: string;
+    D?: string;
+    E?: string;
+    F?: string;
+    G?: string;
+    H?: string;
+    I?: string;
+    J?: string;
+    K?: string;
   };
-  middleware?: MidWare[];
+  middleware?: Array<Store.ActionProcessor<string, AppendAction>>;
 }
 
-function genericStoreTest(c: Configuration) {
-  const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
+const whenStateIsXDispatchY = (
+  state: string,
+  dispatch: Obs<AppendAction>
+): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  forward$: action$,
+  dispatch$: state$.pipe(filter(i => i === state), mergeMap(_ => dispatch))
+});
+
+const whenActionIsXDispatchY = (
+  findAction: string,
+  dispatch: Obs<AppendAction>
+): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  forward$: action$,
+  dispatch$: action$.pipe(
+    filter(i => i.payload === findAction),
+    mergeMap(_ => dispatch)
+  )
+});
+
+const whenActionIsXReplaceWithY = (
+  findAction: string,
+  replace: Obs<AppendAction>
+): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  forward$: action$.pipe(
+    mergeMap(i => (i.payload === findAction ? replace : obsOf(i)))
+  ),
+  dispatch$: empty()
+});
+
+const createTestScheduler = () =>
+  new TestScheduler((act, exp) => expect(act).toEqual(exp));
+
+function genericTest(cfg: Configuration) {
+  const sch = createTestScheduler();
   sch.run(({ hot }) => {
-    const store = Store.create<number, Action>(
-      c.initialState,
+    const store = Store.create(
+      "",
       reducer,
-      ...Option.reduce(c.middleware, [])
+      ...Option.reduce(cfg.middleware, [])
     );
-    if (c.add !== undefined) {
-      hot<number>(c.add, addNumberKey)
-        .pipe(map(i => store.dispatch(add(i))))
-        .subscribe();
-    }
-    if (c.negate !== undefined) {
-      hot(c.negate)
-        .pipe(map(() => store.dispatch(negateAction)))
-        .subscribe();
-    }
-    if (c.shutdown !== undefined) {
-      hot(c.shutdown)
+    hot<string>(cfg.append, letterKey)
+      .pipe(map(i => store.dispatch(append(i))))
+      .subscribe();
+    if (cfg.shutdown !== undefined) {
+      hot(cfg.shutdown)
         .pipe(map(() => store.shutdown()))
         .subscribe();
     }
-    sch.expectObservable(store.state$).toBe(c.expected, c.expectedMap);
+    sch.expectObservable(store.state$).toBe(cfg.expected, cfg.expectedMap);
   });
 }
 
 test("state$ - when subscribe before any action is dispatched, get the initial state", () => {
   const c: Configuration = {
-    initialState: 100,
-    add: "--------^--------",
-    expected: "a--------",
+    append: "--------^--------",
+    expected: "A--------",
     expectedMap: {
-      a: 100
+      A: ""
     }
   };
-  genericStoreTest(c);
+  genericTest(c);
 });
 
 test("state$ - when subscribe after actions have been dispatched, get the current state", () => {
   const c: Configuration = {
-    initialState: 100,
-    add: "--1---3--^----------",
-    expected: "a----",
+    append: "--a---b--^----------",
+    expected: "A----",
     expectedMap: {
-      a: 104
+      A: "ab"
     }
   };
-  genericStoreTest(c);
+  genericTest(c);
 });
 
 test("state$ - when each action is processed, update and emit the new state", () => {
   const c: Configuration = {
-    initialState: 0,
-    add: "--1---3--8--2--8",
-    negate: "----x------x----",
-    expected: "a-b-c-d--e-fg--h",
+    append: "--a---b--c--d--e",
+    expected: "A-B---C--D--E--F",
     expectedMap: {
-      a: 0,
-      b: 1,
-      c: -1,
-      d: 2,
-      e: 10,
-      f: -10,
-      g: -8,
-      h: 0
+      A: "",
+      B: "a",
+      C: "ab",
+      D: "abc",
+      E: "abcd",
+      F: "abcde"
     }
   };
-  genericStoreTest(c);
+  genericTest(c);
 });
 
-test("state$ - on shutdown, emit completed", () => {
+test("middleware can dispatch actions based on current state", () => {
   const c: Configuration = {
-    initialState: 0,
-    add: "--1---3--8--2--8",
-    shutdown: "--------x-------",
-    expected: "a-b---c-|",
+    // prettier-ignore
+    append:   "--a---b--",
+    expected: "A-BC--DE",
     expectedMap: {
-      a: 0,
-      b: 1,
-      c: 4
-    }
+      A: "",
+      B: "a",
+      C: "ay",
+      D: "ayb",
+      E: "aybz"
+    },
+    middleware: [
+      whenStateIsXDispatchY("a", obsOf(append("y")).pipe(delay(1))),
+      whenStateIsXDispatchY("ayb", obsOf(append("z")).pipe(delay(1)))
+    ]
   };
-  genericStoreTest(c);
+  genericTest(c);
 });
 
-test("dispatch observable", () => {
-  const store = Store.create(0, reducer);
-  const process = (context: {
-    action$: Obs<Action>;
-    state$: Obs<number>;
-    shutdown$: Obs<any>;
-  }) =>
-    interval(3).pipe(
-      map(i => add(2)),
-      takeUntil(context.action$.pipe(filter(i => i.kind === "negate")))
-    );
-  const sch = new TestScheduler((a, e) => expect(a).toEqual(e));
+test("middleware can dispatch actions based on actions", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:   "--a---b--",
+    expected: "A-BC--DE",
+    expectedMap: {
+      A: "",
+      B: "a",
+      C: "ay",
+      D: "ayb",
+      E: "aybz"
+    },
+    middleware: [
+      whenActionIsXDispatchY("a", obsOf(append("y")).pipe(delay(1))),
+      whenActionIsXDispatchY("b", obsOf(append("z")).pipe(delay(1)))
+    ]
+  };
+  genericTest(c);
+});
+
+test("middleware can filter and replace actions that get forwarded", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:   "--a---b--",
+    expected: "A--B---C",
+    expectedMap: {
+      A: "",
+      B: "y",
+      C: "yz"
+    },
+    middleware: [
+      whenActionIsXReplaceWithY("a", obsOf(append("y")).pipe(delay(1))),
+      whenActionIsXReplaceWithY("b", obsOf(append("z")).pipe(delay(1)))
+    ]
+  };
+  genericTest(c);
+});
+
+test("middleware - function executed only once", () => {
+  let executeCount = 0;
+  const spy: Store.ActionProcessor<string, AppendAction> = ({
+    action$,
+    shutdown$
+  }) => {
+    executeCount++;
+    return {
+      forward$: action$,
+      dispatch$: empty()
+    };
+  };
+  const store = Store.create("", reducer, spy);
+  const sch = createTestScheduler();
   sch.run(({ hot }) => {
-    store.dispatchObservable(process);
-    hot("-------------x")
-      .pipe(map(i => store.dispatch(negateAction)))
+    store.dispatch(append("a"));
+    store.dispatch(append("b"));
+    expect(executeCount).toBe(1);
+  });
+});
+
+test("middleware can generate dispatches regardless of state and actions", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:   "-----------",
+    expected: "ABCDEF-----",
+    expectedMap: {
+      A: "",
+      B: "a",
+      C: "aa",
+      D: "aaa",
+      E: "aaaa",
+      F: "aaaaa"
+    },
+    middleware: [emitRegularly(append("a"), 1, 5)]
+  };
+  genericTest(c);
+});
+
+test("middleware reduces each action before dispatching new actions dispatched by middleware", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:   "---a------b",
+    expected: "A--(BC)---(DE)",
+    expectedMap: {
+      A: "",
+      B: "a",
+      C: "ay",
+      D: "ayb",
+      E: "aybz"
+    },
+    middleware: [
+      whenActionIsXDispatchY("a", obsOf(append("y"))),
+      whenActionIsXDispatchY("b", obsOf(append("z")))
+    ]
+  };
+  genericTest(c);
+});
+
+test("shutdown - state$ completes", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:    "--a---b----c---c-",
+    shutdown: "--------x--------",
+    expected: "A-B---C-|------- ",
+    expectedMap: {
+      A: "",
+      B: "a",
+      C: "ab"
+    }
+  };
+  genericTest(c);
+});
+
+test("shutdown - shutdown$ sent to middleware emits something and then completes", () => {
+  let shutdown: Obs<any>;
+  const spy: Store.ActionProcessor<string, AppendAction> = ({
+    action$,
+    shutdown$
+  }) => {
+    shutdown = shutdown$;
+    return {
+      forward$: action$,
+      dispatch$: empty()
+    };
+  };
+  const store = Store.create("", reducer, spy);
+  const sch = createTestScheduler();
+  sch.run(({ hot }) => {
+    hot("----x")
+      .pipe(map(_ => store.shutdown()))
       .subscribe();
     sch
-      .expectObservable(store.state$)
-      .toBe("a--b--c--d--ef-----", { a: 0, b: 2, c: 4, d: 6, e: 8, f: -8 });
-    // "---------x"
-    // "---x--x--x--x--x--x--x" adding
-    // "-------------x" negate
-    // "a--b--c--d--e-f-----" expected
+      .expectObservable(shutdown.pipe(map(_ => "x")))
+      .toBe("----(x|)", { x: "x" });
   });
 });
 
-test("middleware can filter actions that get forwarded", () => {
-  const filterNegate: MidWare = ({ action$: a$ }) => ({
-    forward$: a$.pipe(filter(i => i.kind === "add")),
-    dispatch$: empty()
-  });
-  const c: Configuration = {
-    add: "--1---3--^--2--8----",
-    expected: "a--b--c----",
-    expectedMap: {
-      a: 4,
-      b: 6,
-      c: 14
-    },
-    initialState: 0,
-    middleware: [filterNegate]
-  };
-  genericStoreTest(c);
-});
-
-test("middleware can dispatch delayed actions based on state$", () => {
-  const dispatchAddFiveWhenStateIsTen: MidWare = ({
-    action$: a$,
-    state$: s$
-  }) => ({
-    dispatch$: s$.pipe(filter(s => s === 10), delay(1), map(_ => add(5))),
-    forward$: a$
-  });
-  // prettier-ignore
-  const c: Configuration = {
-    initialState: 0,
-    add:      "-2-2-6--7",
-    expected: "ab-c-de-f",
-    expectedMap: {
-      a: 0,
-      b: 2,
-      c: 4,
-      d: 10,
-      e: 15,
-      f: 22
-    },
-    middleware: [dispatchAddFiveWhenStateIsTen]
-  };
-  genericStoreTest(c);
-});
-
-test("middleware can dispatch synchronous actions based on state$", () => {
-  const dispatchAddFiveWhenStateIsTen: MidWare = ({
-    action$: a$,
-    state$: s$
-  }) => ({
-    dispatch$: s$.pipe(filter(s => s === 10), map(_ => add(5))),
-    forward$: a$
-  });
-  // prettier-ignore
-  const c: Configuration = {
-    initialState: 0,
-    add:      "-2---2-6-------7",
-    expected: "ab---c-(de)----f",
-    expectedMap: {
-      a: 0,
-      b: 2,
-      c: 4,
-      d: 10,
-      e: 15,
-      f: 22
-    },
-    middleware: [dispatchAddFiveWhenStateIsTen]
-  };
-  genericStoreTest(c);
-});
-
-test("middleware can dispatch new actions based on current state", () => {
-  const dispatchAddFiveWhenStateIsEven: MidWare = ({
-    state$: s$,
-    action$: a$
-  }) => ({
-    dispatch$: a$.pipe(
-      withLatestFrom(s$),
-      filter(([_, state]) => state % 2 === 0),
-      map(_ => add(5))
-    ),
-    forward$: a$
-  });
-  const c: Configuration = {
-    add: "--0---1------1------",
-    expected: "a-b---(cd)---(ef)---",
-    expectedMap: {
-      a: 1,
-      b: 1,
-      c: 2,
-      d: 7,
-      e: 8,
-      f: 13
-    },
-    initialState: 1,
-    middleware: [dispatchAddFiveWhenStateIsEven]
-  };
-  genericStoreTest(c);
-});
-
-test("middleware can change and forward new actions", () => {
-  const transform: MidWare = ({ action$: a$ }) => ({
-    forward$: a$.pipe(
-      flatMap(
-        i =>
-          i.kind === "add" ? obsOf(negateAction, add(i.operand * 3)) : obsOf(i)
-      )
-    ),
-    dispatch$: empty()
-  });
-  // prettier-ignore
-  const c: Configuration = {
-      add:      "--5-----7-------------",
-      expected: "a-(bc)--(de)-----",
-      initialState: 1,
-      expectedMap: {
-      a: 1,
-      b: -1,
-      c: 14,
-      d: -14,
-      e: 7,
-    },
-    middleware: [transform]
-  };
-  genericStoreTest(c);
-});
-
-test("middleware chain is processed in correct order", () => {
-  const incrementOperand: MidWare = ({ action$: a$ }) => ({
-    forward$: a$.pipe(
-      flatMap(i => (i.kind === "add" ? obsOf(add(i.operand + 1)) : obsOf(i)))
-    ),
-    dispatch$: empty()
-  });
-  const multiplyOperandByFive: MidWare = ({ action$: a$ }) => ({
-    forward$: a$.pipe(
-      flatMap(i => (i.kind === "add" ? obsOf(add(i.operand * 5)) : obsOf(i)))
-    ),
-    dispatch$: empty()
-  });
-  // prettier-ignore
-  const c: Configuration = {
-      add:      "--1---2-----3-------",
-      expected: "a-b---c-----d-------",
-      initialState: 0,
-      expectedMap: {
-      a: 0,
-      b: 10,
-      c: 25,
-      d: 45,
-    },
-    middleware: [incrementOperand,multiplyOperandByFive]
-  };
-  genericStoreTest(c);
-});
-
-test("can dispatch an action stream", () => {
-  const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
-  sch.run(({ hot }) => {
-    const store = Store.create<number, Action>(0, reducer);
-    const marbles = {
-      addThree: "--x--x--x--|",
-      expected: "a-b--c--d"
+test("shutdown - state$ provided to middleware completes", () => {
+  let spyState$: Obs<string>;
+  const spy: Store.ActionProcessor<string, AppendAction> = ({
+    action$,
+    state$
+  }) => {
+    spyState$ = state$;
+    return {
+      forward$: action$,
+      dispatch$: empty()
     };
-    const expectedMap = { a: 0, b: 3, c: 6, d: 9 };
-    const action$ = hot(marbles.addThree).pipe(map(() => add(3)));
-    store.dispatchStream(action$);
-    sch.expectObservable(store.state$).toBe(marbles.expected, expectedMap);
+  };
+  const store = Store.create("", reducer, spy);
+  const sch = createTestScheduler();
+  sch.run(({ hot }) => {
+    hot("----x")
+      .pipe(map(_ => store.shutdown()))
+      .subscribe();
+    sch.expectObservable(spyState$).toBe("A---|", { A: "" });
   });
 });
 
-// test("can dispatch more than one overlapping stream, even after first completes", () => {
-//   const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
-//   sch.run(({ cold }) => {
-//     const store = Store.create<number, Action>(0, reducer);
-//     const marbles = {
-//       addActions: "1--5--9-|",
-//       dispatchOn: "-x-x---------x---------",
-//       expected: "ab-cd-ef-g---h--i--j"
-//     };
-//     const expectedMap = {
-//       a: 0,
-//       b: 1,
-//       c: 2,
-//       d: 7,
-//       e: 12,
-//       f: 21,
-//       g: 30,
-//       h: 31,
-//       i: 36,
-//       j: 45
-//     };
-//     const actionsToDispatch$ = cold<number>(
-//       marbles.addActions,
-//       addNumberKey
-//     ).pipe(map(i => add(i)));
-//     sch.expectObservable(store.state$).toBe(marbles.expected, expectedMap);
-//   });
+test("shutdown - action$ provided to middleware completes", () => {
+  let spyAction$: Obs<AppendAction>;
+  const spy: Store.ActionProcessor<string, AppendAction> = ({
+    action$,
+    state$
+  }) => {
+    spyAction$ = action$;
+    return {
+      forward$: action$,
+      dispatch$: empty()
+    };
+  };
+  const store = Store.create("", reducer, spy);
+  const sch = createTestScheduler();
+  sch.run(({ hot }) => {
+    hot("----x")
+      .pipe(map(_ => store.shutdown()))
+      .subscribe();
+    sch.expectObservable(spyAction$).toBe("----|");
+  });
+});
+
+const emitRegularly = (
+  action: AppendAction,
+  everyMilliseconds: number,
+  takeCount: number
+) => ({ action$ }: Store.Context<string, AppendAction>) => ({
+  forward$: action$,
+  dispatch$: interval(everyMilliseconds).pipe(take(takeCount), map(_ => action))
+});
+
+// when this completes, what about result completing?
+
+// test("when one middleware completes, middleware can generate dispatches regardless of state and actions", () => {
+//   const c: Configuration = {
+//     // prettier-ignore
+//     append:   "-----------",
+//     expected: "ABCDEF-----",
+//     expectedMap: {
+//       A: "",
+//       B: "a",
+//       C: "aa",
+//       D: "aaa",
+//       E: "aaaa",
+//       F: "aaaaa"
+//     },
+//     middleware: [emitRegularly(append("a"), 1, 5)]
+//   };
+//   genericTest(c);
 // });
 
-// when dispatch stream, subscribe to it once
-
-// test("shutdown unsubscribes from dispatched action streams", () => {
-//   const sch = new TestScheduler((act, exp) => expect(act).toEqual(exp));
-//   sch.run(({ hot, cold }) => {
-//     const store = Store.create<number, Action>(0, reducer);
-//     const marbles = {
-//       shutdown: "----x",
-//       addThree: "-x-----xxxxx",
-//       expected: "ab--|",
-//       expdissub: "^---!"
-//     };
-//     const timedShutdown$ = cold(marbles.shutdown)
-//       .pipe(map(i => store.shutdown()))
-//       .subscribe();
-//     const toDispatch$ = cold(marbles.addThree);
-//     store.dispatchStream(toDispatch$.pipe(map(i => add(3)))); // start at 0
-//     sch.expectObservable(store.state$).toBe(marbles.expected, { a: 0, b: 3 });
-//     sch.expectSubscriptions(toDispatch$.subscriptions).toBe(marbles.expdissub);
-//   });
+// // can one middleware stop while another continues?
+// test("shutdown - sends completed message to middleware", () => {
+//   const c: Configuration = {
+//     // prettier-ignore
+//     append:   "-----------",
+//     shutdown: "-----x",
+//     expected: "ABCDE-----",
+//     expectedMap: {
+//       A: "",
+//       B: "a",
+//       C: "aa",
+//       D: "aaa",
+//       E: "aaaa",
+//       F: "aaaaa"
+//     },
+//     middleware: [emitRegularly(append("a"), 1, 1000)]
+//   };
+//   genericTest(c);
 // });
-
-// sends completed to middleware using state and action streams
-
-export const factory = {
-  append: (s: string) => createAction("append", s),
-  trigger: (n: number) => createAction("trigger", n)
-};
-
-export type ActionType = ActionTypeUnion<typeof factory>;
-
-const simpleReducer = (previousState: string, action: ActionType) => {
-  switch (action.type) {
-    case "append":
-      return previousState.concat(action.payload);
-    case "trigger":
-      return previousState;
-  }
-};
-
-test("append with middleware, not using state", () => {
-  const whenTriggerDispatchAppend = (
-    isTrigger: (n: number) => boolean,
-    whatToAppend: string
-  ) => ({ action$: a$ }: Store.Context<string, ActionType>) => ({
-    forward$: a$,
-    dispatch$: a$.pipe(
-      filter(i => i.type === "trigger" && isTrigger(i.payload)),
-      map(_ => factory.append(whatToAppend))
-    )
-  });
-  const dispatchA = whenTriggerDispatchAppend(n => true, "a");
-  const dispatchB = whenTriggerDispatchAppend(n => true, "b");
-  const dispatchC = whenTriggerDispatchAppend(n => true, "c");
-  const store = Store.create(
-    "",
-    simpleReducer,
-    dispatchA,
-    dispatchB,
-    dispatchC
-  );
-  let last: string = "";
-  store.state$.subscribe(i => (last = i));
-  store.dispatch(factory.trigger(0));
-  expect(last).toEqual("abc");
-});
-
-test("append with middleware, using state, every middleware sees same state ", () => {
-  const whenTriggerDispatchAppend = (
-    isTrigger: (n: number) => boolean,
-    whatToAppend: string
-  ) => ({ action$: a$, state$: s$ }: Store.Context<string, ActionType>) => ({
-    forward$: a$,
-    dispatch$: a$.pipe(
-      withLatestFrom(s$),
-      filter(
-        ([a, s]) => a.type === "trigger" && isTrigger(a.payload) && s === ""
-      ),
-      map(_ => factory.append(whatToAppend))
-    )
-  });
-  const dispatchA = whenTriggerDispatchAppend(n => true, "a");
-  const dispatchB = whenTriggerDispatchAppend(n => true, "b");
-  const dispatchC = whenTriggerDispatchAppend(n => true, "c");
-  const store = Store.create(
-    "",
-    simpleReducer,
-    dispatchA,
-    dispatchB,
-    dispatchC
-  );
-  let last: string = "";
-  store.state$.subscribe(i => (last = i));
-  store.dispatch(factory.trigger(0));
-  expect(last).toEqual("abc");
-});

@@ -4,39 +4,13 @@ import {
   merge,
   Observable as Obs,
   of as observableOf,
-  Subject,
-  Observer,
-  ConnectableObservable,
-  interval
+  Subject
 } from "rxjs";
-import {
-  map,
-  mergeMap,
-  takeUntil,
-  withLatestFrom,
-  delay,
-  scan,
-  filter,
-  publish,
-  refCount,
-  last,
-  take
-} from "rxjs/operators";
-import { debug } from "console";
+import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
 
 export interface Store<State, Action> {
   state$: Obs<State>;
   dispatch(action: Action): void;
-  dispatchStream(action$: Obs<Action>): void;
-  dispatchObservable(
-    factory: (
-      context: Partial<{
-        action$: Obs<Action>;
-        state$: Obs<State>;
-        shutdown$: Obs<any>;
-      }>
-    ) => Obs<Action>
-  ): void;
   shutdown(): void;
 }
 
@@ -65,7 +39,7 @@ const chainTwoActionProcessors = <State, Action>(
   const bResult = b({ state$, action$: aResult.forward$, shutdown$ });
   return {
     forward$: bResult.forward$,
-    dispatch$: merge(aResult.dispatch$, bResult.dispatch$) // maybe swap these
+    dispatch$: merge(aResult.dispatch$, bResult.dispatch$)
   };
 };
 
@@ -87,9 +61,10 @@ export function create<State, Action>(
   initialState: State,
   reducer: Reducer<State, Action>,
   ...middleware: Array<ActionProcessor<State, Action>>
-): Store<State, Action> {
-  const state$ = new BehaviorSubject<State>(initialState);
+): Readonly<Store<State, Action>> {
   const shutdown$ = new Subject<any>();
+  const stateSubject$ = new BehaviorSubject<State>(initialState);
+  const state$ = stateSubject$.asObservable().pipe(takeUntil(shutdown$));
   const actionSource$$ = new Subject<Obs<Action>>();
   const actionSource$ = actionSource$$.pipe(
     mergeMap(i => i),
@@ -99,38 +74,28 @@ export function create<State, Action>(
     forwardAll<State, Action>(),
     middleware
   );
+  const shutdown = () => {
+    shutdown$.next(true);
+    shutdown$.complete();
+  };
   const dispatch = (a: Action) => dispatchStream(observableOf(a));
   const dispatchStream = (a$: Obs<Action>) => actionSource$$.next(a$);
-  const dispatchObservable = (
-    factory: (
-      context: Partial<{
-        action$: Obs<Action>;
-        state$: Obs<State>;
-        shutdown$: Obs<any>;
-      }>
-    ) => Obs<Action>
-  ) => dispatchStream(factory({ state$, action$: actionSource$, shutdown$ }));
   const actionsAfterMiddleware = actionProcessor({
     state$,
     action$: actionSource$,
     shutdown$
   });
-  // dispatch before reduce?
-  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until
-  actionsAfterMiddleware.forward$ // take until
+  actionsAfterMiddleware.forward$ // take until? errors?
     .pipe(
       withLatestFrom(state$),
       map(([action, state]) => reducer(state, action))
     )
-    .subscribe(n => state$.next(n));
-  // actionsAfterMiddleware.dispatch$.pipe(delay(0)).subscribe(n => dispatch(n)); // take until
-  // readonly?
+    .subscribe(n => stateSubject$.next(n));
+  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until? errors?
   const result = {
-    state$: state$.asObservable().pipe(takeUntil(shutdown$)),
+    state$,
     dispatch,
-    dispatchStream,
-    dispatchObservable,
-    shutdown: () => shutdown$.next(true)
+    shutdown
   };
   Object.freeze(result);
   return result;
