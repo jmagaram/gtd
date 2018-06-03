@@ -4,15 +4,25 @@ import {
   merge,
   Observable as Obs,
   of as observableOf,
-  Subject
+  Subject,
+  Observer,
+  ConnectableObservable,
+  interval
 } from "rxjs";
 import {
   map,
   mergeMap,
   takeUntil,
   withLatestFrom,
-  delay
+  delay,
+  scan,
+  filter,
+  publish,
+  refCount,
+  last,
+  take
 } from "rxjs/operators";
+import { debug } from "console";
 
 export interface Store<State, Action> {
   state$: Obs<State>;
@@ -55,7 +65,7 @@ const chainTwoActionProcessors = <State, Action>(
   const bResult = b({ state$, action$: aResult.forward$, shutdown$ });
   return {
     forward$: bResult.forward$,
-    dispatch$: merge(aResult.dispatch$, bResult.dispatch$)
+    dispatch$: merge(aResult.dispatch$, bResult.dispatch$) // maybe swap these
   };
 };
 
@@ -125,14 +135,3 @@ export function create<State, Action>(
   Object.freeze(result);
   return result;
 }
-// action 1
-// action 2 mid A
-//    dispatch x but when will it arrive?
-// action 2 mid B
-//    dispatch y but when will it arrive?
-//    action 2 beforemiddleware
-//    dispatch x do not update state
-//    dispatch y do not update state
-//    action 2 reduce (or swallowed!)
-//    update state
-//
