@@ -4,8 +4,6 @@ import { TestScheduler } from "rxjs/testing";
 import { createAction } from "../src/reactUtility/action";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
-import App from "./App";
-import { debug } from "console";
 
 const append = (s: string) => createAction("append", s);
 
@@ -222,6 +220,17 @@ test("middleware - function executed only once", () => {
 });
 
 test("middleware can generate dispatches regardless of state and actions", () => {
+  const emitRegularly = (
+    action: AppendAction,
+    everyMilliseconds: number,
+    takeCount: number
+  ) => ({ action$ }: Store.Context<string, AppendAction>) => ({
+    forward$: action$,
+    dispatch$: interval(everyMilliseconds).pipe(
+      take(takeCount),
+      map(_ => action)
+    )
+  });
   const c: Configuration = {
     // prettier-ignore
     append:   "-----------",
@@ -274,7 +283,7 @@ test("shutdown - state$ completes", () => {
   genericTest(c);
 });
 
-test("shutdown - shutdown$ sent to middleware emits something and then completes", () => {
+test("shutdown - shutdown$ provided to middleware emits something then completes", () => {
   let shutdown: Obs<any>;
   const spy: Store.ActionProcessor<string, AppendAction> = ({
     action$,
@@ -342,51 +351,40 @@ test("shutdown - action$ provided to middleware completes", () => {
   });
 });
 
-const emitRegularly = (
-  action: AppendAction,
-  everyMilliseconds: number,
-  takeCount: number
-) => ({ action$ }: Store.Context<string, AppendAction>) => ({
-  forward$: action$,
-  dispatch$: interval(everyMilliseconds).pipe(take(takeCount), map(_ => action))
+test("shutdown - unsubscribe from middleware dispatch$", () => {
+  const sch = createTestScheduler();
+  sch.run(({ hot }) => {
+    const dispatch = hot("");
+    const processor = ({
+      action$,
+      state$
+    }: Store.Context<string, AppendAction>) => ({
+      forward$: action$,
+      dispatch$: dispatch
+    });
+    const target = Store.create("", reducer, processor);
+    hot("-----x")
+      .pipe(map(i => target.shutdown()))
+      .subscribe();
+    sch.expectSubscriptions(dispatch.subscriptions).toBe("^----!");
+  });
 });
 
-// when this completes, what about result completing?
-
-// test("when one middleware completes, middleware can generate dispatches regardless of state and actions", () => {
-//   const c: Configuration = {
-//     // prettier-ignore
-//     append:   "-----------",
-//     expected: "ABCDEF-----",
-//     expectedMap: {
-//       A: "",
-//       B: "a",
-//       C: "aa",
-//       D: "aaa",
-//       E: "aaaa",
-//       F: "aaaaa"
-//     },
-//     middleware: [emitRegularly(append("a"), 1, 5)]
-//   };
-//   genericTest(c);
-// });
-
-// // can one middleware stop while another continues?
-// test("shutdown - sends completed message to middleware", () => {
-//   const c: Configuration = {
-//     // prettier-ignore
-//     append:   "-----------",
-//     shutdown: "-----x",
-//     expected: "ABCDE-----",
-//     expectedMap: {
-//       A: "",
-//       B: "a",
-//       C: "aa",
-//       D: "aaa",
-//       E: "aaaa",
-//       F: "aaaaa"
-//     },
-//     middleware: [emitRegularly(append("a"), 1, 1000)]
-//   };
-//   genericTest(c);
-// });
+test("shutdown - unsubscribe from middleware forward$", () => {
+  const sch = createTestScheduler();
+  sch.run(({ hot }) => {
+    const forward = hot("");
+    const processor = ({
+      action$,
+      state$
+    }: Store.Context<string, AppendAction>) => ({
+      forward$: forward,
+      dispatch$: empty()
+    });
+    const target = Store.create("", reducer, processor);
+    hot("-----x")
+      .pipe(map(i => target.shutdown()))
+      .subscribe();
+    sch.expectSubscriptions(forward.subscriptions).toBe("^----!");
+  });
+});

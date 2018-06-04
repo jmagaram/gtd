@@ -85,13 +85,16 @@ export function create<State, Action>(
     action$: actionSource$,
     shutdown$
   });
-  actionsAfterMiddleware.forward$ // take until? errors?
+  actionsAfterMiddleware.forward$
     .pipe(
+      takeUntil(shutdown$),
       withLatestFrom(state$),
       map(([action, state]) => reducer(state, action))
     )
     .subscribe(n => stateSubject$.next(n));
-  actionsAfterMiddleware.dispatch$.subscribe(n => dispatch(n)); // take until? errors?
+  actionsAfterMiddleware.dispatch$
+    .pipe(takeUntil(shutdown$))
+    .subscribe(n => dispatch(n));
   const result = {
     state$,
     dispatch,
