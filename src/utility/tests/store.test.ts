@@ -6,9 +6,9 @@ import {
 } from "rxjs";
 import { delay, filter, map, mergeMap, take } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
-import { createAction } from "../src/reactUtility/action";
-import * as Store from "./stateStore";
-import * as Option from "./utility/option";
+import { createAction } from "../../reactUtility/action";
+import * as Option from "../option";
+import * as Store from "../store";
 
 const append = (s: string) => createAction("append", s);
 
