@@ -63,7 +63,7 @@ export function createStore<State, Action>(
     forward$: action$,
     dispatch$: emptyObs()
   });
-  const actionProcessor = middleware.reduce(chainMiddleware, forwardActions);
+  const appliedMiddleware = middleware.reduce(chainMiddleware, forwardActions);
   const shutdown = () => {
     shutdown$.next(true);
     shutdown$.complete();
@@ -71,19 +71,19 @@ export function createStore<State, Action>(
   const dispatch = (action: Action) => actionSource$$.next(obsFrom(action));
   const dispatchEpic = (epic: Epic<State, Action>) =>
     actionSource$$.next(epic({ state$, action$: actionSource$, shutdown$ }));
-  const middlewareResult = actionProcessor({
+  const { forward$, dispatch$ } = appliedMiddleware({
     state$,
     action$: actionSource$,
     shutdown$
   });
-  const updateState = middlewareResult.forward$
+  const updateState = forward$
     .pipe(
       takeUntil(shutdown$),
       withLatestFrom(state$),
       map(([action, state]) => reducer(state, action))
     )
-    .subscribe(n => stateSubject$.next(n));
-  const dispatchMiddlewareActions = middlewareResult.dispatch$
+    .subscribe(stateSubject$);
+  const dispatchMiddlewareActions = dispatch$
     .pipe(takeUntil(shutdown$))
     .subscribe(n => dispatch(n));
   return {
