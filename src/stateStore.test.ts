@@ -1,10 +1,15 @@
-import { empty, interval, Observable as Obs, of as obsOf, Subject } from "rxjs";
+import {
+  empty as emptyObs,
+  interval,
+  Observable as Obs,
+  of as obsOf,
+  Subject
+} from "rxjs";
 import { delay, filter, map, mergeMap, take } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
 import { createAction } from "../src/reactUtility/action";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
-import { createSecureContext } from "tls";
 
 const append = (s: string) => createAction("append", s);
 
@@ -77,7 +82,7 @@ const whenActionIsXReplaceWithY = (
   forward$: action$.pipe(
     mergeMap(i => (i.payload === findAction ? replace : obsOf(i)))
   ),
-  dispatch$: empty()
+  dispatch$: emptyObs()
 });
 
 const createTestScheduler = () =>
@@ -218,6 +223,24 @@ test("middleware can filter and replace actions that get forwarded", () => {
   genericTest(c);
 });
 
+test("middleware customizes actions going to next middleware in chain", () => {
+  const c: Configuration = {
+    // prettier-ignore
+    append:   "--a---a--",
+    expected: "A---B---C",
+    expectedMap: {
+      A: "",
+      B: "c",
+      C: "cc"
+    },
+    middleware: [
+      whenActionIsXReplaceWithY("a", obsOf(append("b")).pipe(delay(1))),
+      whenActionIsXReplaceWithY("b", obsOf(append("c")).pipe(delay(1)))
+    ]
+  };
+  genericTest(c);
+});
+
 test("middleware - function executed only once", () => {
   let executeCount = 0;
   const spy: Store.ActionProcessor<string, AppendAction> = ({
@@ -227,7 +250,7 @@ test("middleware - function executed only once", () => {
     executeCount++;
     return {
       forward$: action$,
-      dispatch$: empty()
+      dispatch$: emptyObs()
     };
   };
   const store = Store.create("", reducer, spy);
@@ -312,7 +335,7 @@ test("shutdown - shutdown$ provided to middleware emits something then completes
     shutdown = shutdown$;
     return {
       forward$: action$,
-      dispatch$: empty()
+      dispatch$: emptyObs()
     };
   };
   const store = Store.create("", reducer, spy);
@@ -336,7 +359,7 @@ test("shutdown - state$ provided to middleware completes", () => {
     spyState$ = state$;
     return {
       forward$: action$,
-      dispatch$: empty()
+      dispatch$: emptyObs()
     };
   };
   const store = Store.create("", reducer, spy);
@@ -358,7 +381,7 @@ test("shutdown - action$ provided to middleware completes", () => {
     spyAction$ = action$;
     return {
       forward$: action$,
-      dispatch$: empty()
+      dispatch$: emptyObs()
     };
   };
   const store = Store.create("", reducer, spy);
@@ -399,7 +422,7 @@ test("shutdown - unsubscribe from middleware forward$", () => {
       state$
     }: Store.Context<string, AppendAction>) => ({
       forward$: forward,
-      dispatch$: empty()
+      dispatch$: emptyObs()
     });
     const target = Store.create("", reducer, processor);
     hot("-----x")

@@ -1,9 +1,9 @@
 import {
   BehaviorSubject,
-  empty,
+  empty as emptyObs,
   merge,
   Observable as Obs,
-  of as observableOf,
+  of as obsOf,
   Subject
 } from "rxjs";
 import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
@@ -20,6 +20,12 @@ export interface Context<State, Action> {
   action$: Obs<Action>;
   shutdown$: Obs<any>;
 }
+
+// ActionProcessor
+// Middleware
+// Processor
+// dispatchObservable
+//
 
 export type ActionProcessor<State, Action> = (
   { state$, action$, shutdown$ }: Context<State, Action>
@@ -55,7 +61,7 @@ const chainActionProcessors = <State, Action>(
 
 const forwardAll = <State, Action>(): ActionProcessor<State, Action> => ({
   action$
-}: Context<State, Action>) => ({ forward$: action$, dispatch$: empty() });
+}: Context<State, Action>) => ({ forward$: action$, dispatch$: emptyObs() });
 
 export type Reducer<State, Action> = (
   previousState: State,
@@ -83,7 +89,7 @@ export function create<State, Action>(
     shutdown$.next(true);
     shutdown$.complete();
   };
-  const dispatch = (a: Action) => dispatchStream(observableOf(a));
+  const dispatch = (a: Action) => dispatchStream(obsOf(a));
   const dispatchObservable = (action$: AsyncProcess<State, Action>) => {
     actionSource$$.next(action$({ state$, action$: actionSource$, shutdown$ }));
   };
@@ -109,6 +115,5 @@ export function create<State, Action>(
     dispatchObservable,
     shutdown
   };
-  Object.freeze(result);
   return result;
 }
