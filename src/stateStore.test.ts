@@ -412,3 +412,18 @@ test("shutdown - unsubscribe from middleware forward$", () => {
     sch.expectSubscriptions(forward.subscriptions).toBe("^----!");
   });
 });
+
+test("shutdown - unsubscribe from dispatched epic", () => {
+  const sch = testScheduler();
+  sch.run(({ hot }) => {
+    const epic$ = hot("-----x-----x");
+    const epic: Store.Epic<string, Append> = ({ state$ }) =>
+      epic$.pipe(map(_ => append("a")));
+    const target = Store.createStore("", reducer);
+    target.dispatchEpic(epic);
+    hot("-----x")
+      .pipe(map(i => target.shutdown()))
+      .subscribe();
+    sch.expectSubscriptions(epic$.subscriptions).toBe("^----!");
+  });
+});
