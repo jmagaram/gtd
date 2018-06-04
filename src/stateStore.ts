@@ -11,6 +11,7 @@ import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
 export interface Store<State, Action> {
   state$: Obs<State>;
   dispatch(action: Action): void;
+  dispatchObservable(action$: AsyncProcess<State, Action>): void;
   shutdown(): void;
 }
 
@@ -26,6 +27,10 @@ export type ActionProcessor<State, Action> = (
   forward$: Obs<Action>;
   dispatch$: Obs<Action>;
 };
+
+export type AsyncProcess<State, Action> = (
+  { state$, action$, shutdown$ }: Context<State, Action>
+) => Obs<Action>;
 
 const chainTwoActionProcessors = <State, Action>(
   a: ActionProcessor<State, Action>,
@@ -79,6 +84,9 @@ export function create<State, Action>(
     shutdown$.complete();
   };
   const dispatch = (a: Action) => dispatchStream(observableOf(a));
+  const dispatchObservable = (action$: AsyncProcess<State, Action>) => {
+    actionSource$$.next(action$({ state$, action$: actionSource$, shutdown$ }));
+  };
   const dispatchStream = (a$: Obs<Action>) => actionSource$$.next(a$);
   const actionsAfterMiddleware = actionProcessor({
     state$,
@@ -98,6 +106,7 @@ export function create<State, Action>(
   const result = {
     state$,
     dispatch,
+    dispatchObservable,
     shutdown
   };
   Object.freeze(result);

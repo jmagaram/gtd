@@ -4,6 +4,7 @@ import { TestScheduler } from "rxjs/testing";
 import { createAction } from "../src/reactUtility/action";
 import * as Store from "./stateStore";
 import * as Option from "./utility/option";
+import { createSecureContext } from "tls";
 
 const append = (s: string) => createAction("append", s);
 
@@ -124,7 +125,7 @@ test("state$ - when subscribe after actions have been dispatched, get the curren
   genericTest(c);
 });
 
-test("state$ - when each action is processed, update and emit the new state", () => {
+test("dispatchAction - when each action is processed, reduce and emit state$", () => {
   const c: Configuration = {
     append: "--a---b--c--d--e",
     expected: "A-B---C--D--E--F",
@@ -138,6 +139,25 @@ test("state$ - when each action is processed, update and emit the new state", ()
     }
   };
   genericTest(c);
+});
+
+test("dispatchObservable - when each action is processed, reduce and emit state$", () => {
+  const sch = createTestScheduler();
+  sch.run(({ hot, cold }) => {
+    const store = Store.create("", reducer);
+    const process = ({  }: Store.Context<string, AppendAction>) =>
+      cold("-x--x|").pipe(map(_ => append("a")));
+    hot("--x-----x")
+      .pipe(map(_ => store.dispatchObservable(process)))
+      .subscribe();
+    sch.expectObservable(store.state$).toBe("A--B--C--D--E", {
+      A: "",
+      B: "a",
+      C: "aa",
+      D: "aaa",
+      E: "aaaa"
+    });
+  });
 });
 
 test("middleware can dispatch actions based on current state", () => {
