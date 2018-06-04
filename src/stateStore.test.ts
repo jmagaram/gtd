@@ -2,8 +2,7 @@ import {
   empty as emptyObs,
   interval,
   Observable as Obs,
-  of as obsOf,
-  Subject
+  of as obsFrom
 } from "rxjs";
 import { delay, filter, map, mergeMap, take } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
@@ -13,9 +12,9 @@ import * as Option from "./utility/option";
 
 const append = (s: string) => createAction("append", s);
 
-type AppendAction = ReturnType<typeof append>;
+type Append = ReturnType<typeof append>;
 
-const reducer = (state: string, action: AppendAction) => state + action.payload;
+const reducer = (state: string, action: Append) => state + action.payload;
 
 const letterKey = {
   a: "a",
@@ -53,21 +52,21 @@ interface Configuration {
     J?: string;
     K?: string;
   };
-  middleware?: Array<Store.ActionProcessor<string, AppendAction>>;
+  middleware?: Array<Store.Middleware<string, Append>>;
 }
 
 const whenStateIsXDispatchY = (
   state: string,
-  dispatch: Obs<AppendAction>
-): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  dispatch: Obs<Append>
+): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
   forward$: action$,
   dispatch$: state$.pipe(filter(i => i === state), mergeMap(_ => dispatch))
 });
 
 const whenActionIsXDispatchY = (
   findAction: string,
-  dispatch: Obs<AppendAction>
-): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  dispatch: Obs<Append>
+): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
   forward$: action$,
   dispatch$: action$.pipe(
     filter(i => i.payload === findAction),
@@ -77,21 +76,21 @@ const whenActionIsXDispatchY = (
 
 const whenActionIsXReplaceWithY = (
   findAction: string,
-  replace: Obs<AppendAction>
-): Store.ActionProcessor<string, AppendAction> => ({ state$, action$ }) => ({
+  replace: Obs<Append>
+): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
   forward$: action$.pipe(
-    mergeMap(i => (i.payload === findAction ? replace : obsOf(i)))
+    mergeMap(i => (i.payload === findAction ? replace : obsFrom(i)))
   ),
   dispatch$: emptyObs()
 });
 
-const createTestScheduler = () =>
+const testScheduler = () =>
   new TestScheduler((act, exp) => expect(act).toEqual(exp));
 
-function genericTest(cfg: Configuration) {
-  const sch = createTestScheduler();
+function runGenericTest(cfg: Configuration) {
+  const sch = testScheduler();
   sch.run(({ hot }) => {
-    const store = Store.create(
+    const store = Store.createStore(
       "",
       reducer,
       ...Option.reduce(cfg.middleware, [])
@@ -116,7 +115,7 @@ test("state$ - when subscribe before any action is dispatched, get the initial s
       A: ""
     }
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("state$ - when subscribe after actions have been dispatched, get the current state", () => {
@@ -127,7 +126,7 @@ test("state$ - when subscribe after actions have been dispatched, get the curren
       A: "ab"
     }
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("dispatchAction - when each action is processed, reduce and emit state$", () => {
@@ -143,17 +142,17 @@ test("dispatchAction - when each action is processed, reduce and emit state$", (
       F: "abcde"
     }
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
-test("dispatchObservable - when each action is processed, reduce and emit state$", () => {
-  const sch = createTestScheduler();
+test("dispatchEpic - when each action is processed, reduce and emit state$", () => {
+  const sch = testScheduler();
   sch.run(({ hot, cold }) => {
-    const store = Store.create("", reducer);
-    const process = ({  }: Store.Context<string, AppendAction>) =>
+    const store = Store.createStore("", reducer);
+    const epic = ({  }: Store.Context<string, Append>) =>
       cold("-x--x|").pipe(map(_ => append("a")));
     hot("--x-----x")
-      .pipe(map(_ => store.dispatchObservable(process)))
+      .pipe(map(_ => store.dispatchEpic(epic)))
       .subscribe();
     sch.expectObservable(store.state$).toBe("A--B--C--D--E", {
       A: "",
@@ -178,11 +177,11 @@ test("middleware can dispatch actions based on current state", () => {
       E: "aybz"
     },
     middleware: [
-      whenStateIsXDispatchY("a", obsOf(append("y")).pipe(delay(1))),
-      whenStateIsXDispatchY("ayb", obsOf(append("z")).pipe(delay(1)))
+      whenStateIsXDispatchY("a", obsFrom(append("y")).pipe(delay(1))),
+      whenStateIsXDispatchY("ayb", obsFrom(append("z")).pipe(delay(1)))
     ]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("middleware can dispatch actions based on actions", () => {
@@ -198,11 +197,11 @@ test("middleware can dispatch actions based on actions", () => {
       E: "aybz"
     },
     middleware: [
-      whenActionIsXDispatchY("a", obsOf(append("y")).pipe(delay(1))),
-      whenActionIsXDispatchY("b", obsOf(append("z")).pipe(delay(1)))
+      whenActionIsXDispatchY("a", obsFrom(append("y")).pipe(delay(1))),
+      whenActionIsXDispatchY("b", obsFrom(append("z")).pipe(delay(1)))
     ]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("middleware can filter and replace actions that get forwarded", () => {
@@ -216,11 +215,11 @@ test("middleware can filter and replace actions that get forwarded", () => {
       C: "yz"
     },
     middleware: [
-      whenActionIsXReplaceWithY("a", obsOf(append("y")).pipe(delay(1))),
-      whenActionIsXReplaceWithY("b", obsOf(append("z")).pipe(delay(1)))
+      whenActionIsXReplaceWithY("a", obsFrom(append("y")).pipe(delay(1))),
+      whenActionIsXReplaceWithY("b", obsFrom(append("z")).pipe(delay(1)))
     ]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("middleware customizes actions going to next middleware in chain", () => {
@@ -234,27 +233,24 @@ test("middleware customizes actions going to next middleware in chain", () => {
       C: "cc"
     },
     middleware: [
-      whenActionIsXReplaceWithY("a", obsOf(append("b")).pipe(delay(1))),
-      whenActionIsXReplaceWithY("b", obsOf(append("c")).pipe(delay(1)))
+      whenActionIsXReplaceWithY("a", obsFrom(append("b")).pipe(delay(1))),
+      whenActionIsXReplaceWithY("b", obsFrom(append("c")).pipe(delay(1)))
     ]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
-test("middleware - function executed only once", () => {
+test("middleware function executed only once", () => {
   let executeCount = 0;
-  const spy: Store.ActionProcessor<string, AppendAction> = ({
-    action$,
-    shutdown$
-  }) => {
+  const spy: Store.Middleware<string, Append> = ({ action$, shutdown$ }) => {
     executeCount++;
     return {
       forward$: action$,
       dispatch$: emptyObs()
     };
   };
-  const store = Store.create("", reducer, spy);
-  const sch = createTestScheduler();
+  const store = Store.createStore("", reducer, spy);
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     store.dispatch(append("a"));
     store.dispatch(append("b"));
@@ -264,10 +260,10 @@ test("middleware - function executed only once", () => {
 
 test("middleware can generate dispatches regardless of state and actions", () => {
   const emitRegularly = (
-    action: AppendAction,
+    action: Append,
     everyMilliseconds: number,
     takeCount: number
-  ) => ({ action$ }: Store.Context<string, AppendAction>) => ({
+  ) => ({ action$ }: Store.Context<string, Append>) => ({
     forward$: action$,
     dispatch$: interval(everyMilliseconds).pipe(
       take(takeCount),
@@ -288,10 +284,10 @@ test("middleware can generate dispatches regardless of state and actions", () =>
     },
     middleware: [emitRegularly(append("a"), 1, 5)]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
-test("middleware reduces each action before dispatching new actions dispatched by middleware", () => {
+test("middleware reduces each action before dispatching new actions", () => {
   const c: Configuration = {
     // prettier-ignore
     append:   "---a------b",
@@ -304,11 +300,11 @@ test("middleware reduces each action before dispatching new actions dispatched b
       E: "aybz"
     },
     middleware: [
-      whenActionIsXDispatchY("a", obsOf(append("y"))),
-      whenActionIsXDispatchY("b", obsOf(append("z")))
+      whenActionIsXDispatchY("a", obsFrom(append("y"))),
+      whenActionIsXDispatchY("b", obsFrom(append("z")))
     ]
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("shutdown - state$ completes", () => {
@@ -323,23 +319,20 @@ test("shutdown - state$ completes", () => {
       C: "ab"
     }
   };
-  genericTest(c);
+  runGenericTest(c);
 });
 
 test("shutdown - shutdown$ provided to middleware emits something then completes", () => {
   let shutdown: Obs<any>;
-  const spy: Store.ActionProcessor<string, AppendAction> = ({
-    action$,
-    shutdown$
-  }) => {
+  const spy: Store.Middleware<string, Append> = ({ action$, shutdown$ }) => {
     shutdown = shutdown$;
     return {
       forward$: action$,
       dispatch$: emptyObs()
     };
   };
-  const store = Store.create("", reducer, spy);
-  const sch = createTestScheduler();
+  const store = Store.createStore("", reducer, spy);
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     hot("----x")
       .pipe(map(_ => store.shutdown()))
@@ -352,18 +345,15 @@ test("shutdown - shutdown$ provided to middleware emits something then completes
 
 test("shutdown - state$ provided to middleware completes", () => {
   let spyState$: Obs<string>;
-  const spy: Store.ActionProcessor<string, AppendAction> = ({
-    action$,
-    state$
-  }) => {
+  const spy: Store.Middleware<string, Append> = ({ action$, state$ }) => {
     spyState$ = state$;
     return {
       forward$: action$,
       dispatch$: emptyObs()
     };
   };
-  const store = Store.create("", reducer, spy);
-  const sch = createTestScheduler();
+  const store = Store.createStore("", reducer, spy);
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     hot("----x")
       .pipe(map(_ => store.shutdown()))
@@ -373,19 +363,16 @@ test("shutdown - state$ provided to middleware completes", () => {
 });
 
 test("shutdown - action$ provided to middleware completes", () => {
-  let spyAction$: Obs<AppendAction>;
-  const spy: Store.ActionProcessor<string, AppendAction> = ({
-    action$,
-    state$
-  }) => {
+  let spyAction$: Obs<Append>;
+  const spy: Store.Middleware<string, Append> = ({ action$, state$ }) => {
     spyAction$ = action$;
     return {
       forward$: action$,
       dispatch$: emptyObs()
     };
   };
-  const store = Store.create("", reducer, spy);
-  const sch = createTestScheduler();
+  const store = Store.createStore("", reducer, spy);
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     hot("----x")
       .pipe(map(_ => store.shutdown()))
@@ -395,17 +382,14 @@ test("shutdown - action$ provided to middleware completes", () => {
 });
 
 test("shutdown - unsubscribe from middleware dispatch$", () => {
-  const sch = createTestScheduler();
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     const dispatch = hot("");
-    const processor = ({
-      action$,
-      state$
-    }: Store.Context<string, AppendAction>) => ({
+    const processor = ({ action$, state$ }: Store.Context<string, Append>) => ({
       forward$: action$,
       dispatch$: dispatch
     });
-    const target = Store.create("", reducer, processor);
+    const target = Store.createStore("", reducer, processor);
     hot("-----x")
       .pipe(map(i => target.shutdown()))
       .subscribe();
@@ -414,17 +398,14 @@ test("shutdown - unsubscribe from middleware dispatch$", () => {
 });
 
 test("shutdown - unsubscribe from middleware forward$", () => {
-  const sch = createTestScheduler();
+  const sch = testScheduler();
   sch.run(({ hot }) => {
     const forward = hot("");
-    const processor = ({
-      action$,
-      state$
-    }: Store.Context<string, AppendAction>) => ({
+    const processor = ({ action$, state$ }: Store.Context<string, Append>) => ({
       forward$: forward,
       dispatch$: emptyObs()
     });
-    const target = Store.create("", reducer, processor);
+    const target = Store.createStore("", reducer, processor);
     hot("-----x")
       .pipe(map(i => target.shutdown()))
       .subscribe();
