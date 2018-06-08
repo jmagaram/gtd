@@ -1,10 +1,10 @@
 import * as Rx from "rxjs";
 import {
+  concat,
   delay,
   filter,
   map,
   mergeMap,
-  onErrorResumeNext,
   switchMap,
   take,
   takeUntil,
@@ -12,7 +12,6 @@ import {
 } from "rxjs/operators";
 import { ActionTypes, factory } from "src/actions";
 import { createStorageService, StorageService } from "src/db/storageService";
-import * as ActionItem from "src/state/actionItem";
 import * as AppState from "src/state/appState";
 import * as UniqueId from "src/state/uniqueId";
 import * as Option from "src/utility/option";
@@ -142,11 +141,14 @@ export const deleteActionItem = (db: StorageService): Epc => ({
             factory.actionItem_updatePurgeCountdown(id, (i * 100) / 5)
           );
         } else {
-          const z = Rx.from(db.deleteActionItem(id)).pipe(
-            map(_ => Rx.of(factory.error_display("hack to get it to work"))),
-            onErrorResumeNext(Rx.of(factory.error_display("Could not delete")))
+          return Rx.from(
+            db
+              .deleteActionItem(id)
+              .then(
+                succ => factory.doNothing(),
+                err => factory.error_display("Could not delete")
+              )
           );
-          return z;
         }
       }),
       mergeMap(jj => jj),
@@ -156,7 +158,8 @@ export const deleteActionItem = (db: StorageService): Epc => ({
             j => j.type === "actionItem_cancelPurge" && j.payload.id === id
           )
         )
-      )
+      ),
+      concat(Rx.of(factory.actionItem_cancelPurge(id))) // hide delete status no matter what
     );
   const p = keysToDelete.pipe(
     map(i => process(i)),
