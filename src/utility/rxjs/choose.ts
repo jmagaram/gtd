@@ -1,6 +1,8 @@
 import * as Rx from "rxjs";
 import { filter, map } from "rxjs/operators";
-import { isNotNullOrUndefined } from "./isNotNullOrUndefined";
+import { isSome } from "../option";
+
+// tslint:disable:max-classes-per-file
 
 /**
  * Applies the given function to each element of the observable. Emits
@@ -17,5 +19,5 @@ export const choose = <T, U>(selector: (item: T) => U | undefined) => (
 ) =>
   source.pipe(
     map(selector),
-    filter(isNotNullOrUndefined)
+    filter(isSome)
   );

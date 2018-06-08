@@ -12,7 +12,7 @@ export interface T {
 export function createDefault(): T {
     return {
         view: View.createDefault(),
-        actionItems: ActionItemArray.createSampleData(),
+        actionItems: [],
         createForm: CreateForm.createDefault()
     };
 }

@@ -1,10 +1,10 @@
-import * as React from 'react';
-import './App.css';
-import { T as CreateForm } from './containers//CreateFormContainer'
-import { T as ActionItemList } from './containers/ActionItemListContainer'
-import { T as View } from './containers/View'
-import logo from './logo.svg';
-import * as Store from './store'
+import * as React from "react";
+import "./App.css";
+import { T as CreateForm } from "./containers//CreateFormContainer";
+import { T as ActionItemList } from "./containers/ActionItemListContainer";
+import { T as View } from "./containers/View";
+import logo from "./logo.svg";
+import * as Store from "./store";
 
 class App extends React.Component {
   private store = Store.createDefault();

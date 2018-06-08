@@ -1,20 +1,26 @@
-import { fromGenerator } from './fromGenerator';
+import { fromGenerator } from "./fromGenerator";
 
-export function windowed<T>(source: Iterable<T>, size: number): Iterable<ReadonlyArray<T>> {
-    if (size <= 0) {
-        throw new Error(`The window size must be 1 or bigger, but you specified ${size}.`);
+export function windowed<T>(
+  source: Iterable<T>,
+  size: number
+): Iterable<ReadonlyArray<T>> {
+  if (size <= 0) {
+    throw new Error(
+      `The window size must be 1 or bigger, but you specified ${size}.`
+    );
+  }
+  function* items() {
+    const window: T[] = [];
+    for (const i of source) {
+      if (window.push(i) === size) {
+        yield window.slice(0, size);
+        window.shift();
+      }
     }
-    function* items() {
-        const window: T[] = [];
-        for (const i of source) {
-            if (window.push(i) === size) {
-                yield window.slice(0, size);
-                window.shift();
-            }
-        }
-    }
-    return fromGenerator(items);
+  }
+  return fromGenerator(items);
 }
 
 // tslint:disable-next-line:variable-name
-export const windowed_ = <T>(size: number) => (source: Iterable<T>) => windowed(source, size);
+export const windowed_ = <T>(size: number) => (source: Iterable<T>) =>
+  windowed(source, size);

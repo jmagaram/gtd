@@ -7,6 +7,8 @@ import {
   Subject
 } from "rxjs";
 import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
+import * as Seq from "src/seq";
+import { pipe } from "src/utility/pipe";
 
 /**
  * An application state store, like Redux, but based on Observables and rxjs.
@@ -14,7 +16,7 @@ import { map, mergeMap, takeUntil, withLatestFrom } from "rxjs/operators";
 export interface Store<State, Action> {
   state$: Obs<State>;
   dispatch(action: Action): void;
-  dispatchEpic(action$: Epic<State, Action>): void;
+  dispatchEpic(epic: Epic<State, Action>): void;
   shutdown(): void;
 }
 
@@ -23,7 +25,6 @@ export type Reducer<State, Action> = (previous: State, action: Action) => State;
 export interface Context<State, Action> {
   state$: Obs<State>;
   action$: Obs<Action>;
-  shutdown$: Obs<any>;
 }
 
 /**
@@ -34,11 +35,9 @@ export interface Context<State, Action> {
  *
  * @param state$ The current store state.
  * @param action$ The action stream, filtered by any prior middleware.
- * @param shutdown$ Emits a single value when the store is shutdown; use with the rxjs takeUntil operator
- * on any subscriptions.
  */
 export type Middleware<State, Action> = (
-  { state$, action$, shutdown$ }: Context<State, Action>
+  { state$, action$ }: Context<State, Action>
 ) => {
   forward$: Obs<Action>;
   dispatch$: Obs<Action>;
@@ -50,15 +49,15 @@ export type Middleware<State, Action> = (
  * delayed deletion operation that could be cancelled if a cancellation action arrives.
  */
 export type Epic<State, Action> = (
-  { state$, action$, shutdown$ }: Context<State, Action>
+  { state$, action$ }: Context<State, Action>
 ) => Obs<Action>;
 
 const chainMiddleware = <State, Action>(
   fst: Middleware<State, Action>,
   snd: Middleware<State, Action>
-) => ({ state$, action$, shutdown$ }: Context<State, Action>) => {
-  const fstRes = fst({ state$, action$, shutdown$ });
-  const sndRes = snd({ state$, action$: fstRes.forward$, shutdown$ });
+) => ({ state$, action$ }: Context<State, Action>) => {
+  const fstRes = fst({ state$, action$ });
+  const sndRes = snd({ state$, action$: fstRes.forward$ });
   return {
     forward$: sndRes.forward$,
     dispatch$: merge(fstRes.dispatch$, sndRes.dispatch$)
@@ -89,11 +88,10 @@ export function createStore<State, Action>(
   };
   const dispatch = (action: Action) => actionSource$$.next(obsFrom(action));
   const dispatchEpic = (epic: Epic<State, Action>) =>
-    actionSource$$.next(epic({ state$, action$: actionSource$, shutdown$ }));
+    actionSource$$.next(epic({ state$, action$: actionSource$ }));
   const { forward$, dispatch$ } = appliedMiddleware({
     state$,
-    action$: actionSource$,
-    shutdown$
+    action$: actionSource$
   });
   const updateState = forward$
     .pipe(
@@ -112,3 +110,10 @@ export function createStore<State, Action>(
     shutdown
   };
 }
+
+export const createActionDispatcher = <S, A>(
+  epic: Epic<S, A>
+): Middleware<S, A> => ({ state$, action$ }) => ({
+  dispatch$: epic({ state$, action$ }),
+  forward$: action$
+});

@@ -50,6 +50,22 @@ test("can toggle important", async () => {
   expect(stored.find(i => i.id === "1")!.isImportant).toBe(true);
 });
 
+test("when toggle important, total count of items is unchanged", async () => {
+  const db = Storage.createStorageService();
+  await db.saveActionItem({
+    id: "1",
+    isImportant: false,
+    isComplete: false,
+    title: "call dad"
+  });
+  await db.toggleImportant("1" as UniqueId.T);
+  await db.toggleImportant("1" as UniqueId.T);
+  await db.toggleImportant("1" as UniqueId.T);
+  await db.toggleImportant("1" as UniqueId.T);
+  const stored = await db.getAllActionItems();
+  expect(stored.length).toBe(1);
+});
+
 test("can toggle completed", async () => {
   const db = Storage.createStorageService();
   await db.saveActionItem({
@@ -75,8 +91,10 @@ test("can get notified of one insert", async () => {
     isComplete: false,
     title: "call dad"
   });
-  await milliseconds(3000);
+  await milliseconds(1000);
   expect(result.length).toBe(1);
+  const n = result[0];
+  expect(n.type === "Inserted" && n.current.title === "call dad");
   sub.unsubscribe();
 });
 
@@ -119,5 +137,7 @@ test("when toggle important, get proper notification promptly", async () => {
   await db.toggleImportant("1" as UniqueId.T);
   await milliseconds(1000);
   expect(result.length).toBe(1);
+  const n = result[0];
+  expect(n.type === "Updated" && n.current.title === "call dad");
   sub.unsubscribe();
 });

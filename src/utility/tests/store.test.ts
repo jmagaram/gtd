@@ -6,7 +6,7 @@ import {
 } from "rxjs";
 import { delay, filter, map, mergeMap, take } from "rxjs/operators";
 import { TestScheduler } from "rxjs/testing";
-import { createAction } from "../../reactUtility/action";
+import { createAction } from "../../utility/action";
 import * as Option from "../option";
 import * as Store from "../store";
 
@@ -60,13 +60,16 @@ const whenStateIsXDispatchY = (
   dispatch: Obs<Append>
 ): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
   forward$: action$,
-  dispatch$: state$.pipe(filter(i => i === state), mergeMap(_ => dispatch))
+  dispatch$: state$.pipe(
+    filter(i => i === state),
+    mergeMap(_ => dispatch)
+  )
 });
 
 const whenActionIsXDispatchY = (
   findAction: string,
   dispatch: Obs<Append>
-): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
+): Store.Middleware<string, Append> => ({ action$ }) => ({
   forward$: action$,
   dispatch$: action$.pipe(
     filter(i => i.payload === findAction),
@@ -77,7 +80,7 @@ const whenActionIsXDispatchY = (
 const whenActionIsXReplaceWithY = (
   findAction: string,
   replace: Obs<Append>
-): Store.Middleware<string, Append> => ({ state$, action$ }) => ({
+): Store.Middleware<string, Append> => ({ action$ }) => ({
   forward$: action$.pipe(
     mergeMap(i => (i.payload === findAction ? replace : obsFrom(i)))
   ),
@@ -242,7 +245,7 @@ test("middleware customizes actions going to next middleware in chain", () => {
 
 test("middleware function executed only once", () => {
   let executeCount = 0;
-  const spy: Store.Middleware<string, Append> = ({ action$, shutdown$ }) => {
+  const spy: Store.Middleware<string, Append> = ({ action$ }) => {
     executeCount++;
     return {
       forward$: action$,
@@ -251,7 +254,7 @@ test("middleware function executed only once", () => {
   };
   const store = Store.createStore("", reducer, spy);
   const sch = testScheduler();
-  sch.run(({ hot }) => {
+  sch.run(() => {
     store.dispatch(append("a"));
     store.dispatch(append("b"));
     expect(executeCount).toBe(1);
@@ -322,27 +325,6 @@ test("shutdown - state$ completes", () => {
   runGenericTest(c);
 });
 
-test("shutdown - shutdown$ provided to middleware emits something then completes", () => {
-  let shutdown: Obs<any>;
-  const spy: Store.Middleware<string, Append> = ({ action$, shutdown$ }) => {
-    shutdown = shutdown$;
-    return {
-      forward$: action$,
-      dispatch$: emptyObs()
-    };
-  };
-  const store = Store.createStore("", reducer, spy);
-  const sch = testScheduler();
-  sch.run(({ hot }) => {
-    hot("----x")
-      .pipe(map(_ => store.shutdown()))
-      .subscribe();
-    sch
-      .expectObservable(shutdown.pipe(map(_ => "x")))
-      .toBe("----(x|)", { x: "x" });
-  });
-});
-
 test("shutdown - state$ provided to middleware completes", () => {
   let spyState$: Obs<string>;
   const spy: Store.Middleware<string, Append> = ({ action$, state$ }) => {
@@ -364,7 +346,7 @@ test("shutdown - state$ provided to middleware completes", () => {
 
 test("shutdown - action$ provided to middleware completes", () => {
   let spyAction$: Obs<Append>;
-  const spy: Store.Middleware<string, Append> = ({ action$, state$ }) => {
+  const spy: Store.Middleware<string, Append> = ({ action$ }) => {
     spyAction$ = action$;
     return {
       forward$: action$,
@@ -385,13 +367,13 @@ test("shutdown - unsubscribe from middleware dispatch$", () => {
   const sch = testScheduler();
   sch.run(({ hot }) => {
     const dispatch = hot("");
-    const processor = ({ action$, state$ }: Store.Context<string, Append>) => ({
+    const processor = ({ action$ }: Store.Context<string, Append>) => ({
       forward$: action$,
       dispatch$: dispatch
     });
     const target = Store.createStore("", reducer, processor);
     hot("-----x")
-      .pipe(map(i => target.shutdown()))
+      .pipe(map(() => target.shutdown()))
       .subscribe();
     sch.expectSubscriptions(dispatch.subscriptions).toBe("^----!");
   });
@@ -401,13 +383,13 @@ test("shutdown - unsubscribe from middleware forward$", () => {
   const sch = testScheduler();
   sch.run(({ hot }) => {
     const forward = hot("");
-    const processor = ({ action$, state$ }: Store.Context<string, Append>) => ({
+    const processor = () => ({
       forward$: forward,
       dispatch$: emptyObs()
     });
     const target = Store.createStore("", reducer, processor);
     hot("-----x")
-      .pipe(map(i => target.shutdown()))
+      .pipe(map(() => target.shutdown()))
       .subscribe();
     sch.expectSubscriptions(forward.subscriptions).toBe("^----!");
   });
@@ -417,12 +399,12 @@ test("shutdown - unsubscribe from dispatched epic", () => {
   const sch = testScheduler();
   sch.run(({ hot }) => {
     const epic$ = hot("-----x-----x");
-    const epic: Store.Epic<string, Append> = ({ state$ }) =>
+    const epic: Store.Epic<string, Append> = () =>
       epic$.pipe(map(_ => append("a")));
     const target = Store.createStore("", reducer);
     target.dispatchEpic(epic);
     hot("-----x")
-      .pipe(map(i => target.shutdown()))
+      .pipe(map(() => target.shutdown()))
       .subscribe();
     sch.expectSubscriptions(epic$.subscriptions).toBe("^----!");
   });
