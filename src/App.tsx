@@ -2,6 +2,7 @@ import * as React from "react";
 import "./App.css";
 import { T as CreateForm } from "./containers//CreateFormContainer";
 import { T as ActionItemList } from "./containers/ActionItemListContainer";
+import { T as Notification } from "./containers/NotificationContainer";
 import { T as View } from "./containers/View";
 import logo from "./logo.svg";
 import * as Store from "./store";
@@ -19,6 +20,7 @@ class App extends React.Component {
         <CreateForm store={this.store} />
         <View store={this.store} />
         <ActionItemList store={this.store} />
+        <Notification store={this.store} />
       </div>
     );
   }
