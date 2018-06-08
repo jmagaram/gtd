@@ -24,8 +24,17 @@ function* sampleActionsGenerator() {
 }
 
 export const reducer = (s: T, form: CreateForm.T, a: ActionTypes): T => {
-  if (a.type !== "dbUpdate") {
-    let updatedChildren = s.map(i => actionItemReducer(i, a));
+  if (a.type === "dbRefreshAll") {
+    return a.payload.actionItems.map(i =>
+      createActionItemWithId(
+        i.id as UniqueId.T,
+        i.title,
+        i.isImportant,
+        i.isComplete
+      )
+    );
+  } else if (a.type !== "dbUpdate") {
+    const updatedChildren = s.map(i => actionItemReducer(i, a));
     return Array.from(updatedChildren);
   } else {
     let updatedChildren = s.map(i => actionItemReducer(i, a));

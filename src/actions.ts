@@ -20,8 +20,11 @@ export const factory = {
     createAction("error_display", { message }),
   error_hide: () => createAction("error_hide"),
 
-  dbUpdate: (changes: ReadonlyArray<StorageService.RowChange>) =>
+  db_update: (changes: ReadonlyArray<StorageService.RowChange>) =>
     createAction("dbUpdate", changes),
+  db_startRefreshAll: () => createAction("db_startRefreshAll"),
+  db_refreshAll: (actionItems: ReadonlyArray<StorageService.ActionItem>) =>
+    createAction("dbRefreshAll", { actionItems }),
 
   createForm_cancel: () => createAction("createForm_cancel"),
   createForm_submit: () => createAction("createForm_submit"),

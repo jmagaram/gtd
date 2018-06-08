@@ -24,6 +24,7 @@ const insertedRow = <
   table: Table,
   current: Row
 ) => ({ type, table, current });
+
 const deletedRow = <
   Change extends RowChangeType & "Deleted",
   Table extends TableName,
@@ -33,6 +34,7 @@ const deletedRow = <
   table: Table,
   deleted: Row
 ) => ({ type, table, deleted });
+
 const modifiedRow = <
   Change extends RowChangeType & "Updated",
   Table extends TableName,

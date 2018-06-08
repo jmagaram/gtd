@@ -27,6 +27,7 @@ export function createDefault() {
   const store = Store.createStore(
     AppState.createDefault(),
     AppState.reducer,
+    Store.createActionDispatcher(loadAllFromDatabase(theDb)),
     Store.createActionDispatcher(submitAddForm(theDb)),
     Store.createActionDispatcher(hideMessagesAfterFewSeconds),
     Store.createActionDispatcher(dbToggleToDoCompleted(theDb)),
@@ -34,6 +35,7 @@ export function createDefault() {
     Store.createActionDispatcher(listenToDatabaseChanges(theDb)),
     Store.createActionDispatcher(deleteActionItem(theDb))
   );
+  store.dispatch(factory.db_startRefreshAll());
   return store;
 }
 
@@ -91,7 +93,7 @@ const submitAddForm = (db: StorageService): Epc => ({ action$, state$ }: Ctx) =>
     withLatestFrom(state$),
     map(i => i[1].createForm),
     map(i => {
-      let zzzz = db
+      const zzzz = db
         .saveActionItem({
           id: UniqueId.create(),
           isComplete: false,
@@ -110,7 +112,19 @@ const submitAddForm = (db: StorageService): Epc => ({ action$, state$ }: Ctx) =>
 const listenToDatabaseChanges = (db: StorageService): Epc => ({
   action$,
   state$
-}: Ctx) => db.changes$.pipe(map(i => factory.dbUpdate(i)));
+}: Ctx) => db.changes$.pipe(map(i => factory.db_update(i)));
+
+const loadAllFromDatabase = (db: StorageService): Epc => ({
+  action$,
+  state$
+}: Ctx) => {
+  return action$.pipe(
+    filter(i => i.type === "db_startRefreshAll"),
+    map(_ => db.getAllActionItems()),
+    mergeMap(i => i),
+    map(i => factory.db_refreshAll(i))
+  );
+};
 
 export const deleteActionItem = (db: StorageService): Epc => ({
   action$,
